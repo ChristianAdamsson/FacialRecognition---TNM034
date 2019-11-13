@@ -9,6 +9,8 @@ function id = tnm034(im)
 % and '0' for all other faces
 %
 %
+%%
+imshow(im);
 id = 0;
 % Your program code:
 %%%%%%%%%%%%%%%%%%%%%%%%
