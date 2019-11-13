@@ -39,19 +39,21 @@ BW2 = edge(I,'canny');
 %imshowpair(BW1,BW2,'montage')
 %title('Sobel Filter                                   Canny Filter');
 
+% probably needs some work with the SE ad erotion etc. 
 r = 2;
 n = 8;
 SE = strel('diamond',r);
 SE2 = strel('disk', 4, n);
-SE3 = strel('diamond', 8);
+SE3 = strel('diamond', 4);
 %nhood = 10;
 %SE = strel(nhood)
-J1 = imdilate(BW1,SE);
-J2 = imdilate(J1, SE);
+J2 = imdilate(BW1,SE);
+J2 = imdilate(J2, SE3);
 j2 = imerode(J2, SE2);
-J2 = imerode(J2, SE2);
+J2 = imerode(J2, SE3);
 J2 = imerode(J2, SE3);
 figure;
+%test för gitkraken
 imshow(J2);
 
 
