@@ -52,7 +52,7 @@ CrCb = Cr./Cb;
 
 % https://ieeexplore.ieee.org/document/6317473
 
-% This should have all pixels of the face area, not whole pic, I think?
+% n should be: the ratio between the average Cr2 and CrCb
 n = 0.95*Cr2./CrCb;
 % n = imadjust(n,stretchlim(n),[0 1]);
 

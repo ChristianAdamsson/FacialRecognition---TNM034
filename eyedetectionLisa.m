@@ -8,6 +8,11 @@
 % FACE DETECTION IN COLOR IMAGES
 % Rein-Lien Hsu et al.
 %
+% Metoden beskriven här verkar det som:
+% https://books.google.se/books?id=CswUcAl5Rp4C&pg=PA75&lpg=PA75&dq=pyramid+decomposition+eye+detection&source=bl&ots=OUihFCCayN&sig=ACfU3U3ky6CTygZCyGI6CRXMihjyI0Zqmg&hl=sv&sa=X&ved=2ahUKEwjz3_PFgOzlAhVyxaYKHVX2BtgQ6AEwBnoECBEQBA#v=onepage&q=pyramid%20decomposition%20eye%20detection&f=false
+%
+% "Note that the eye and mouth maps are computed within the entire areas of
+% the face candidate, which is bounded by a rectangle"
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clc
@@ -87,7 +92,18 @@ imshow(EyeMapC)
 % Different se for dilate and erode?
 % Also, should be hemisphere, not disk!
 % se = offsetstrel('ball',2,2);
-se = strel('disk',10);
+
+% Larger structural element gives bigger blobs in the end, 
+% which might make it harder to determine eyes since the eye shape
+% gets less defined (for example not eye shaped, but circle shaped)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TODO:
+% Find good values for the structural elements
+% Is there an advantage when using different se for dilation and erosion?
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+se = strel('disk',5);
 
 dilatedY = imdilate(Y,se);
 figure
@@ -111,23 +127,41 @@ EyeMap = EyeMapC.*EyeMapL;
 subplot(3,3,9)
 imshow(EyeMap)
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% TODO:
-% Fix dilation and erosion of EyeMapL
-% Dilate and threshold the final EyeMap
-% 
+
+% Dilate the EyeMap
+se2 = strel('disk',3);
+EyeMap = imdilate(EyeMap,se2);
+
+figure
+imshow(EyeMap)
+
+% Threshold, creates binary mask
+EyeMap = (EyeMap > 0.67);
+figure
+imshow(EyeMap)
+
+%% Detection
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TODO: Implement the detection
 % From FACE DETECTION IN COLOR IMAGES, Rein-Lien Hsu et al.
+%
+% MAYBE I MISUNDERSTOOD DIS
+% Maybe this describes how to create a good eye map?
+%
 % "Eye candidates are selected by using 
 % (i) pyramid decomposition of the dilated eye map for coarse localizations 
 % and (ii) binary morphological closing and iterative thresholding 
 % on this dilated map for fine localizations.
-% 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TODO: Implement verification
 % "The eyes and mouth candidates are verified by checking 
 % (i) luma variations of eye and mouth blobs; 
 % (ii) geometry and orientation constraints of eyes-mouth triangles; 
 % and (iii) the presence of a face boundary around eyes-mouth triangles." 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
