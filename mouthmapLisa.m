@@ -1,5 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %
+%            Plan:
 % Läser in en RGB bild
 % Konverterar till double
 % Konverterar till YCbCr
@@ -33,41 +34,41 @@ Y = imYCbCr(:,:,1);
 Cb = imYCbCr(:,:,2);
 Cr= imYCbCr(:,:,3);
 
-figure
-subplot(2,3,1)
-imshow(Y);
-subplot(2,3,2)
-imshow(Cb);
-subplot(2,3,3)
-imshow(Cr);
-
-
 %% normalize channels
 Y = imadjust(Y,stretchlim(Y),[0 1]);
 Cb = imadjust(Cb,stretchlim(Cb),[0 1]);
 Cr = imadjust(Cr,stretchlim(Cr),[0 1]);
 
-subplot(2,3,4)
-imshow(Y);
-subplot(2,3,5)
-imshow(Cb);
-subplot(2,3,6)
-imshow(Cr);
-
 %% Create mouth map
+% U can use center of gravity to determine mouth (or eye) region!
 
 Cr2 = Cr.^2;
-Cr2 = imadjust(Cr2,stretchlim(Cr2),[0 1]);
+% Cr2 = imadjust(Cr2,stretchlim(Cr2),[0 1]);
 
+
+% The Cr component is greater than Cb near the mouth areas.
 CrCb = Cr./Cb;
-CrCb = imadjust(CrCb,stretchlim(CrCb),[0 1]);
+% CrCb = imadjust(CrCb,stretchlim(CrCb),[0 1]);
+
+% https://ieeexplore.ieee.org/document/6317473
+
+% This should have all pixels of the face area, not whole pic, I think?
+n = 0.95*Cr2./CrCb;
+% n = imadjust(n,stretchlim(n),[0 1]);
 
 
-MouthMap = CrCb - Cr2;
+% Image should have high response in Cr2 and lower in CrCb but this is
+% opposite????
+
+% From lecture slides
+% MouthMap =  CrCb - Cr2;
+% MouthMap = imadjust(MouthMap,stretchlim(MouthMap),[0 1]);
+% MouthMap = MouthMap.*Cr2;
+% MouthMap = imadjust(MouthMap,stretchlim(MouthMap),[0 1]);
+
+MouthMap = Cr2.*(Cr2 - n.*CrCb);
 MouthMap = imadjust(MouthMap,stretchlim(MouthMap),[0 1]);
 
-MouthMap = MouthMap.*Cr2;
-MouthMap = imadjust(MouthMap,stretchlim(MouthMap),[0 1]);
 
 
 

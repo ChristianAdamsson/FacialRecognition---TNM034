@@ -10,9 +10,9 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% clc
-% close all
-% clear all
+clc
+close all
+clear all
 
 imRGB = imread('image_0009.jpg');
 imRGB=im2double(imRGB);
@@ -44,7 +44,8 @@ subplot(2,3,6)
 imshow(Cr);
 
 %% cb2
-
+% HMM: Ska man normalisera efter varje operation eller förstör det 
+% när man räknar skillnader etc sedan? 
 Cb2 = Cb.^2;
 Cb2 = imadjust(Cb2,stretchlim(Cb2),[0 1]);
 
