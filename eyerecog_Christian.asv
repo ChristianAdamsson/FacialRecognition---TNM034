@@ -6,6 +6,7 @@ im = imread('image_0009.jpg');
 I = rgb2gray(im);
 figure
 imshow(I)
+%% 
 
 %% Run this section for Color-based method 
 [counts,binLocations] = imhist(I);
@@ -59,14 +60,20 @@ imshow(J2);
 
 %% försöker skapa hybrid
 
-for(i = size(J2, 2))
-    for (j = size(J2, 1))
-        if(J2(j, i) = binaryImage(J, i))
-            
+for i = size(J2, 2)
+    for j = size(J2, 1)
+        if J2(j, i) == binaryImage(j, i)
+            hybridim (j,i) = J2(j,i);
+        else
+            hybridim(j,i) = 0
         end
     
     end
-en
+end
+
+    imshow(hybridim)
+
+
 
 %% Lisas implementation
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -81,9 +88,9 @@ en
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-clc
-close all
-clear all
+%clc
+%close all
+%clear all
 
 imRGB = imread('image_0009.jpg');
 imRGB=im2double(imRGB);
@@ -176,6 +183,37 @@ imshow(EyeMapC)
 EyeMap = EyeMapC.*EyeMapL; 
 subplot(3,3,9)
 imshow(EyeMap)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TODO:
+% Fix dilation and erosion of EyeMapL
+% Dilate and threshold the final EyeMap
+% 
+% TODO: Implement the detection
+% From FACE DETECTION IN COLOR IMAGES, Rein-Lien Hsu et al.
+% "Eye candidates are selected by using 
+% (i) pyramid decomposition of the dilated eye map for coarse localizations 
+% and (ii) binary morphological closing and iterative thresholding 
+% on this dilated map for fine localizations.
+% 
+% TODO: Implement verification
+% "The eyes and mouth candidates are verified by checking 
+% (i) luma variations of eye and mouth blobs; 
+% (ii) geometry and orientation constraints of eyes-mouth triangles; 
+% and (iii) the presence of a face boundary around eyes-mouth triangles." 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%% försök nmr 2 skapa hybrid
+ImageIlluCol = EyeMap .* binaryImage;
+ImageColEdge = binaryImage .* J2; 
+ImageIlluEdge =  EyeMap.*J2;
+figure
+imshow(ImageColEdge)
+figure
+imshow(ImageIlluCol)
+figure
+imshow(ImageIlluEdge)
 
 
 
