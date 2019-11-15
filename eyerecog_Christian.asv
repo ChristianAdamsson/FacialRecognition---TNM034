@@ -59,20 +59,14 @@ imshow(J2);
 
 %% försöker skapa hybrid
 
-for i = size(J2, 2)
-    for j = size(J2, 1)
-        if J2(j, i) == binaryImage(j, i)
-            hybridim (j,i) = J2(j,i);
-        else
-            hybridim(j,i) = 0
+for(i = size(J2, 2))
+    for (j = size(J2, 1))
+        if(J2(j, i) = binaryImage(J, i))
+            
         end
     
     end
-end
-
-    imshow(hybridim)
-
-
+en
 
 %% Lisas implementation
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -87,9 +81,9 @@ end
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%clc
-%close all
-%clear all
+clc
+close all
+clear all
 
 imRGB = imread('image_0009.jpg');
 imRGB=im2double(imRGB);
@@ -183,17 +177,6 @@ EyeMap = EyeMapC.*EyeMapL;
 subplot(3,3,9)
 imshow(EyeMap)
 
-
-%% försök nmr 2 skapa hybrid
-ImageIlluCol = EyeMap .* binaryImage;
-ImageColEdge = binaryImage .* J2; 
-ImageIlluEdge =  EyeMap.*J2;
-figure
-imshow(ImageColEdge)
-figure
-imshow(ImageIlluCol)
-figure
-imshow(ImageIlluEdge)
 
 
 
