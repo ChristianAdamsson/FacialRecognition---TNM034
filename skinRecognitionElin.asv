@@ -1,0 +1,36 @@
+clear
+clc 
+close
+
+img = imread('db1_01.jpg');
+
+
+S = sum(img,3);
+[~,idx] = max(S(:));
+[row,col] = ind2sub(size(S),idx); %Hitta ljusaste punkten
+
+
+imshow(img);
+viscircles([col, row], 3, 'Color', 'b');
+
+hsvImg = rgb2hsv(img);
+
+imshow(hsvImg);
+
+result = hsvImg(:, :, 1) > 0 & hsvImg(:, :, 1) < 50 & hsvImg(:,:,2) > 0.23 & hsvImg(:,:,2) < 0.68;
+
+resultImg = result.*hsvImg(:,:,3);
+
+resultLogical = resultImg > 0.6;
+
+imshow(resultLogical);
+
+skinImg = img.*resultLogical;
+
+imshow(skinImg);
+
+sMin = 0.23;
+sMax = 0.68;
+hMin = 0;
+hMax = 50;
+
