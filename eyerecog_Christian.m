@@ -33,6 +33,7 @@ resultLogical = resultHsvImg > 0.6;
 skinImg = img.*uint8(resultLogical);
 
 %imshow(skinImg);
+resultLogical = skinRecognition(img);
 
 sMin = 0.23;
 sMax = 0.68;
@@ -236,11 +237,13 @@ EyeMap = EyeMapC.*EyeMapL;
 
 
 %% försök nmr 2 skapa hybrid
-ImageIlluCol = EyeMap .* binaryImage + resultLogical;
-ImageColEdge = binaryImage .* J2 + resultLogical; 
-ImageIlluEdge =  EyeMap.*J2;
+% ResultLogical uträkning tar nu lång tid
+% multiplicerar ihop logiska matriserna. 
 
-ImageIlluEdge = ImageIlluEdge + resultLogical;
+ImageIlluCol = EyeMap .* binaryImage .* resultLogical;
+ImageColEdge = binaryImage .* J2 .* resultLogical; 
+ImageIlluEdge =  EyeMap.* J2 .* resultLogical;
+
 figure
 imshow(ImageColEdge)
 figure

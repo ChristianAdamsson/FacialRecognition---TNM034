@@ -39,8 +39,8 @@ resultLogical = imopen(resultLogical, SE);
 
 skinImg = img.*uint8(resultLogical);
 
-outImg = skinImg;
+outImg = resultLogical;
 
-imshow(skinImg);
+%imshow(skinImg);
 end
 
