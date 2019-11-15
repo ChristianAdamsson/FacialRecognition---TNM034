@@ -10,9 +10,9 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-clc
-close all
-clear all
+% clc
+% close all
+% clear all
 
 imRGB = imread('image_0009.jpg');
 imRGB=im2double(imRGB);
@@ -66,7 +66,11 @@ imshow(Cr2);
 
 %% CbCr
 
+% updated: stretched (normalized) this
+% it had infinity max value
 CbCr = Cb./Cr;
+CbCr = imadjust(CbCr,stretchlim(CbCr),[0 1]);
+
 subplot(4,2,6)
 imshow(CbCr)
 
@@ -81,8 +85,8 @@ imshow(EyeMapC)
 % structuring element
 % Different se for dilate and erode?
 % Also, should be hemisphere, not disk!
-% se = offsetstrel('ball',1,1);
-se = strel('disk',10); 
+% se = offsetstrel('ball',2,2);
+se = strel('disk',10);
 
 dilatedY = imdilate(Y,se);
 figure
@@ -106,7 +110,23 @@ EyeMap = EyeMapC.*EyeMapL;
 subplot(3,3,9)
 imshow(EyeMap)
 
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TODO:
+% Fix dilation and erosion of EyeMapL
+% Dilate and threshold the final EyeMap
+% 
+% TODO: Implement the detection
+% From FACE DETECTION IN COLOR IMAGES, Rein-Lien Hsu et al.
+% "Eye candidates are selected by using 
+% (i) pyramid decomposition of the dilated eye map for coarse localizations 
+% and (ii) binary morphological closing and iterative thresholding 
+% on this dilated map for fine localizations.
+% 
+% TODO: Implement verification
+% "The eyes and mouth candidates are verified by checking 
+% (i) luma variations of eye and mouth blobs; 
+% (ii) geometry and orientation constraints of eyes-mouth triangles; 
+% and (iii) the presence of a face boundary around eyes-mouth triangles." 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
