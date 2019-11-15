@@ -1,11 +1,4 @@
-clear
-clc 
-close
-
-% https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=560536
-
-% sMin: 0, sMax: 50, hMin: 0.23, hMax: 0.68
-% 
+function [outImg] = skinRecognition(inImg)
 
 crMin = 134;
 crMax = 183;
@@ -21,7 +14,7 @@ vMax = 1;
 SE = strel('sphere', 2);
 SE2 = strel('sphere', 30);
 
-img = imread('db1_03.jpg');
+img = inImg;
 
 %img = greyWorldAssumption(img);
 img = referenceWhite(img);
@@ -46,13 +39,8 @@ resultLogical = imopen(resultLogical, SE);
 
 skinImg = img.*uint8(resultLogical);
 
-imshow(skinImg);
+outImg = skinImg;
 
-% 
-% S = sum(img,3);
-% [~,idx] = max(S(:));
-% [row,col] = ind2sub(size(S),idx); %Hitta ljusaste punkten
-% 
-% imshow(img);
-% viscircles([col, row], 3, 'Color', 'b');
+imshow(skinImg);
+end
 
