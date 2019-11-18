@@ -19,7 +19,7 @@ clc
 close all
 clear all
 
-imRGB = imread('image_0009.jpg');
+imRGB = imread('db1_10.jpg');
 imRGB=im2double(imRGB);
 imYCbCr = rgb2ycbcr(imRGB);
 
@@ -37,9 +37,9 @@ subplot(2,3,3)
 imshow(Cr);
 
 %% normalize channels
-Y = imadjust(Y,stretchlim(Y),[0 1]);
-Cb = imadjust(Cb,stretchlim(Cb),[0 1]);
-Cr = imadjust(Cr,stretchlim(Cr),[0 1]);
+Y = normalizeChannel(Y);
+Cb = normalizeChannel(Cb);
+Cr = normalizeChannel(Cr);
 
 subplot(2,3,4)
 imshow(Y);
@@ -52,7 +52,7 @@ imshow(Cr);
 % HMM: Ska man normalisera efter varje operation eller förstör det 
 % när man räknar skillnader etc sedan? 
 Cb2 = Cb.^2;
-Cb2 = imadjust(Cb2,stretchlim(Cb2),[0 1]);
+Cb2 = normalizeChannel(Cb2);
 
 figure
 subplot(4,2,1)
@@ -63,7 +63,8 @@ imshow(Cb2);
 
 %% cr2
 Cr2 = (Cr-1).^2;
-Cr2 = imadjust(Cr2,stretchlim(Cr2),[0 1]);
+Cr2 = normalizeChannel(Cr2);
+
 
 subplot(4,2,3)
 imshow(Cr);
@@ -71,9 +72,8 @@ subplot(4,2,4)
 imshow(Cr2);
 
 %% CbCr
-
-% updated: stretched (normalized) this
-% it had infinity max value
+% Since it has infinitely large values use imadjust instead of
+% normalizeChannel
 CbCr = Cb./Cr;
 CbCr = imadjust(CbCr,stretchlim(CbCr),[0 1]);
 
@@ -83,6 +83,7 @@ imshow(CbCr)
 %% Eye Map C
 
 EyeMapC = (Cb2 + Cr2 + CbCr)./3;
+EyeMapC = normalizeChannel(EyeMapC);
 subplot(4,2,8)
 imshow(EyeMapC)
 
@@ -103,6 +104,7 @@ imshow(EyeMapC)
 % Is there an advantage when using different se for dilation and erosion?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Should be hemisphere
 se = strel('disk',5);
 
 dilatedY = imdilate(Y,se);
@@ -114,7 +116,9 @@ erodedY = imerode(Y,se);
 subplot(3,3,2)
 imshow(erodedY)
 
+
 EyeMapL = dilatedY./(erodedY +1 );
+normalizeChannel(EyeMapL);
 subplot(3,3,3)
 imshow(EyeMapL)
 
@@ -124,12 +128,14 @@ imshow(EyeMapC)
 %% Combine final eye map
 
 EyeMap = EyeMapC.*EyeMapL; 
+normalizeChannel(EyeMap);
 subplot(3,3,9)
 imshow(EyeMap)
 
 
+
 % Dilate the EyeMap
-se2 = strel('disk',3);
+se2 = strel('disk',5);
 EyeMap = imdilate(EyeMap,se2);
 
 figure
@@ -144,6 +150,7 @@ imshow(EyeMap)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TODO: Implement the detection
+% Like Lab 4 in BoB
 % From FACE DETECTION IN COLOR IMAGES, Rein-Lien Hsu et al.
 %
 % MAYBE I MISUNDERSTOOD DIS
