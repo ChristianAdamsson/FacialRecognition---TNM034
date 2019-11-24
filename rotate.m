@@ -30,7 +30,7 @@ set(fh1,'NumberTitle','off','Name','Select eyes n mouth')
 % m_center = [m_x,m_y];
 
 
-%% Calculate how much eyes are off from x-axis
+%% Calculate how much eyes are off
 % If the right eye is positioned higher, then height will be positive.
 height = e1_x - e2_x;
 width = e2_y - e1_y;
@@ -50,7 +50,7 @@ segA = e1_y / cosd(abs(angle));
 helpsegB = e1_y * tand(abs(angle));
 helpsegC = e1_x - helpsegB;
 segD = helpsegC * sind(abs(angle));
-segE = helpsegC * cosd(abs(angle)); % fel tror jag
+segE = helpsegC * cosd(abs(angle));
 segF = imWidth * sind(abs(angle));
 
 e1_xNew = segF + segE;
