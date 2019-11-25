@@ -244,15 +244,35 @@ ImageIlluCol = EyeMap .* binaryImage .* resultLogical;
 ImageColEdge = binaryImage .* J2 .* resultLogical; 
 ImageIlluEdge =  EyeMap.* J2 .* resultLogical;
 
+%figure
+%imshow(ImageColEdge)
+%figure
+%imshow(ImageIlluCol)
+%figure
+%imshow(ImageIlluEdge)
+
+comboimg = ImageIlluCol .* ImageIlluEdge .* ImageIlluEdge;
 figure
-imshow(ImageColEdge)
-figure
-imshow(ImageIlluCol)
-figure
-imshow(ImageIlluEdge)
+imshow(comboimg);
+
+%boundbox = regionprops(resultLogical,'Area', 'BoundingBox');
+%boundbox(1).BoundingBox(1)
+%[left, top, width, height
+%left = floor(boundbox(1).BoundingBox(1))
+%top = floor(boundbox(1).BoundingBox(2))
+%width = boundbox(1).BoundingBox(3)
+%height = boundbox(1).BoundingBox(4)
+
+labelledImage = bwconncomp(comboimg);
+stats = regionprops(labelledImage, 'area', 'BoundingBox');
 
 
-
+%ImageIlluEdge = insertObjectAnnotation(ImageIlluEdge,'Rectangle',boundbox(1).BoundingBox,'testbox');
+testbox = insertObjectAnnotation(comboimg, 'Rectangle', stats(1).BoundingBox, 'testbox');
+figure;
+imshow(testbox);
+%figure;
+%imshow(ImageIlluEdge);
 
 
 
