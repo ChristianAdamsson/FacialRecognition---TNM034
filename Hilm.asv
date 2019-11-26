@@ -26,3 +26,14 @@ end
 % greyWhite = referenceWhite(grey);
 % title('Grey World Assumption + White-balanced')
 
+% Gaussian model N(m,C)
+IMG = rgb2ycbcr(im2double(in)); % figure, imshow(IMG)
+% (b r).'
+b = IMG(:,:,2); r = IMG(:,:,3);
+x = [b; r];  figure, imshow(x)
+m = mean(x(:));
+C = % A
+
+likelihood = -0.5*(x-m).'./C*(x-m);
+figure, imshow(likelihood)
+

@@ -1,5 +1,6 @@
 % Lighting Compensation - reference white
-%   src: https://se.mathworks.com/help/images/ref/illumwhite.html
+%   https://se.mathworks.com/help/images/ref/illumwhite.html
+%   https://se.mathworks.com/help/images/ref/chromadapt.html
 %   Reference white = top 5 % of luma (nonlinear gamma corrected luminance)
 
 function [out] = referenceWhite(in)
@@ -18,8 +19,8 @@ in = chromadapt(in, illuminant, 'ColorSpace', 'linear-rgb');
 
 % To display the white-balanced image correctly on the screen, 
 % apply gamma correction by using the lin2rgb function.
-
 out = lin2rgb(in);
+
 figure, imshow(out)
 title('White-balanced Image')
 
