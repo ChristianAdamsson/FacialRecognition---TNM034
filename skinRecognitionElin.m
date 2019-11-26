@@ -1,52 +1,68 @@
 clear
 clc 
-close
+close all
 
-% https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=560536
+for i = 1:16
+    img = imread(strcat('dream\dream', int2str(i), '.jpg'));
+    faceCluster( i, :, :) = im2double(rgb2gray(img));
+end
 
-% sMin: 0, sMax: 50, hMin: 0.23, hMax: 0.68
+
+M = 16;
+n = 300*400;
+k = 9;
+averageFace(:,:,1) = 1/M * sum(faceCluster);
+
+imshow(averageFace);
+
+for i = 1:16
+    face(:,:,1) = faceCluster(i,:,:);
+    phi(i,:,:) = face - averageFace;
+end
+
+face(:,:,1) = phi(i,:,:);
+imshow(face);
+
+
+for i = 1:16
+    for j = 1:16
+        eigenFaces(i,j,:,:) = phi(i,:,:) .* phi(j,:,:);
+    end
+end
+
+for i = 1:16
+    eigenFace(:,:,:,1) = eigenFaces(i, :, :, :);
+    bestEigenFaces(:,:,:,1) = phi .* eigenFace;
+end
+
+
+for i = 1:16
+    face(:,:,1) = normalizeChannel(bestEigenFaces(i,:,:));
+    imshow(face);
+    figure;
+end
+
+%%
+
+w = 
+
+
+%comapredFace = faceCluster - averageFace;
+
+%displayImages();
+
+
+% img = imread('db1_02.jpg');
 % 
-
-crMin = 134;
-crMax = 183;
-cbMin = 86;
-cbMax = 137;
-sMin = 0.15;
-sMax = 0.75;
-hMin = 0;
-hMax = 0.873;
-vMin = 0.35;
-vMax = 1;
-
-SE = strel('sphere', 2);
-SE2 = strel('sphere', 30);
-
-img = imread('db1_03.jpg');
-
-%img = greyWorldAssumption(img);
-img = referenceWhite(img);
-
-
-hsvImg = rgb2hsv(img);
-cbcrImg = rgb2ycbcr(img);
-
-thresholdLogical = hsvImg(:, :, 1) > hMin & hsvImg(:, :, 1) < hMax & ...
-    hsvImg(:,:,2) > sMin & hsvImg(:,:,2) < sMax & ...
-    hsvImg(:,:,3) > vMin & hsvImg(:,:,3) < vMax & ...
-    cbcrImg(:,:,2) > cbMin & cbcrImg(:,:,2) < cbMax & ...
-    cbcrImg(:,:,3) > crMin & cbcrImg(:,:,3) < crMax;
-
-resultHsvImg = thresholdLogical.*hsvImg(:,:,3);
-
-resultLogical = resultHsvImg > 0.6;
-
-
-resultLogical = imclose(resultLogical, SE2);
-resultLogical = imopen(resultLogical, SE);
-
-skinImg = img.*uint8(resultLogical);
-
-imshow(skinImg);
+% 
+% %img = greyWorldAssumption(img);
+% img = referenceWhite(img);
+% 
+% resultLogical = skinRecognition(img);
+% 
+% skinImg = img.*uint8(resultLogical);
+% 
+% imshow(skinImg);
 
 % 
 % S = sum(img,3);
