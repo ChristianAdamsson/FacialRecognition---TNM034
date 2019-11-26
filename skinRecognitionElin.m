@@ -18,8 +18,9 @@ hMax = 0.873;
 vMin = 0.35;
 vMax = 1;
 
-SE = strel('sphere', 2);
-SE2 = strel('sphere', 30);
+SE = strel('sphere', 3);
+SE2_1 = strel('line', 300, 90);
+Se2_2 = strel('line', 300, 0);
 
 img = imread('db1_03.jpg');
 
@@ -41,7 +42,8 @@ resultHsvImg = thresholdLogical.*hsvImg(:,:,3);
 resultLogical = resultHsvImg > 0.6;
 
 
-resultLogical = imclose(resultLogical, SE2);
+resultLogical = imclose(resultLogical, SE2_1);
+resultLogical = imclose(resultLogical, SE2_2);
 resultLogical = imopen(resultLogical, SE);
 
 skinImg = img.*uint8(resultLogical);
