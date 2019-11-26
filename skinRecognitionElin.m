@@ -1,38 +1,74 @@
 clear
 clc 
-close
+close all
 
-% https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=560536
-
-img = imread('image_0009.jpg');
-
-
-S = sum(img,3);
-[~,idx] = max(S(:));
-[row,col] = ind2sub(size(S),idx); %Hitta ljusaste punkten
+for i = 1:16
+    img = imread(strcat('dream\dream', int2str(i), '.jpg'));
+    faceCluster( i, :, :) = im2double(rgb2gray(img));
+end
 
 
-imshow(img);
-viscircles([col, row], 3, 'Color', 'b');
+M = 16;
+n = 300*400;
+k = 9;
+averageFace(:,:,1) = 1/M * sum(faceCluster);
 
-hsvImg = rgb2hsv(img);
+imshow(averageFace);
 
-imshow(hsvImg);
+for i = 1:16
+    face(:,:,1) = faceCluster(i,:,:);
+    phi(i,:,:) = face - averageFace;
+end
 
-thresholdLogical = hsvImg(:, :, 1) > 0 & hsvImg(:, :, 1) < 50 & hsvImg(:,:,2) > 0.23 & hsvImg(:,:,2) < 0.68;
+face(:,:,1) = phi(i,:,:);
+imshow(face);
 
-resultHsvImg = thresholdLogical.*hsvImg(:,:,3);
 
-resultLogical = resultHsvImg > 0.6;
+for i = 1:16
+    for j = 1:16
+        eigenFaces(i,j,:,:) = phi(i,:,:) .* phi(j,:,:);
+    end
+end
 
-imshow(resultLogical);
+for i = 1:16
+    eigenFace(:,:,:,1) = eigenFaces(i, :, :, :);
+    bestEigenFaces(:,:,:,1) = phi .* eigenFace;
+end
 
-skinImg = img.*uint8(resultLogical);
 
-imshow(skinImg);
+for i = 1:16
+    face(:,:,1) = normalizeChannel(bestEigenFaces(i,:,:));
+    imshow(face);
+    figure;
+end
 
-sMin = 0.23;
-sMax = 0.68;
-hMin = 0;
-hMax = 50;
+%%
+
+w = 
+
+
+%comapredFace = faceCluster - averageFace;
+
+%displayImages();
+
+
+% img = imread('db1_02.jpg');
+% 
+% 
+% %img = greyWorldAssumption(img);
+% img = referenceWhite(img);
+% 
+% resultLogical = skinRecognition(img);
+% 
+% skinImg = img.*uint8(resultLogical);
+% 
+% imshow(skinImg);
+
+% 
+% S = sum(img,3);
+% [~,idx] = max(S(:));
+% [row,col] = ind2sub(size(S),idx); %Hitta ljusaste punkten
+% 
+% imshow(img);
+% viscircles([col, row], 3, 'Color', 'b');
 
