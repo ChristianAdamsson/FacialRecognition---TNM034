@@ -91,59 +91,18 @@ imshow(rezisedimg)
 %figure;
 %imshow(scaledim);
 %im = imread('db1_15.jpg');
+
+% först roterar vi
 rotate();
 [eyeNew1, eyeNew2, rotatedImage] = rotateImage(Image, righteye, lefteye);
 figure
 imshow(rotatedImage);
+
 %%
-%Then, assuming get the edges.
-%Let's say you want 960 by 960 centered on (y,x) = (rowMax, colMax).
-[rows, columns, numberOfColorChannels] = size(rotatedImage);
-diffx = (eyeNew1(2) - eyeNew2(2))/2;
-%diffy = (eyeNew2(1) - eyeNew1(1))/2;
-centery = eyeNew2(2) + diffx;
-centerx = eyeNew2(1);
-
-
-height = 300;
-halfheight = height/2;
-width = 400;
-halfWidth = width /2;
-row1 = centerx - halfWidth;
-row2 = row1 + width - 1;
-col1 = centery - halfheight;
-col2 = col1 + height - 1;
-
-if row1 < 1
-    row1 = 1;
-end
-if row2 > rows
-    row2 = rows;
-end
-if col1 < 1
-    col1 = 1;
-end
-if col2 > columns
-    col2 = columns;
-end
-%if row1 > left
-%    row1 = left;
-%end
-%if col1 < top
-%    col1 = top;
-%end
-
-%I = imresize(rotatedImage, [col2, row2]);
-I = rotatedImage(row1:row2, col1:col2, :);
-
+I = scaling(rotatedImage, eyeNew1, eyeNew2);
 figure;
 imshow(I);
-%A = [row1:row2, col1:col2];
-%rotatedImage = (row1:row2, col1:col2);
-%rotatedImage = mat2gray(row1:floor(row2), col1:floor(col2));
-%figure;
-%imshow(rotatedImage);
-%scaledIm = imresize(rotatedImage, [row1:row2, col1:col2]);
+
 
 
 

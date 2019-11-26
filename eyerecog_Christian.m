@@ -270,11 +270,13 @@ stats = regionprops(labelledImage, 'area', 'BoundingBox');
 
 
 %ImageIlluEdge = insertObjectAnnotation(ImageIlluEdge,'Rectangle',boundbox(1).BoundingBox,'testbox');
-testbox = insertObjectAnnotation(comboimg, 'Rectangle', stats(1).BoundingBox, 'testbox');
+%testbox = insertObjectAnnotation(comboimg, 'Rectangle', stats(1).BoundingBox, 'testbox');
 figure;
 imshow(testbox);
 %figure;
 %imshow(ImageIlluEdge);
+
+
 
 
 

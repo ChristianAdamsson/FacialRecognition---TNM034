@@ -31,6 +31,7 @@ angle = asind(deltaHeight/deltaWidth);
 %% Rotate the image
 [imHeight, imWidth, channels] = size(im);
 rotatedImage = imrotate(im,-angle, 'bilinear');
+imshow(rotatedImage);
 
 %% Calculate new row/col coordinates of the eyes
 
