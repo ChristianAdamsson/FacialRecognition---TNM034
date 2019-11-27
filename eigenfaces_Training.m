@@ -8,6 +8,7 @@ k = 9;
 
 
 %% Store all images in faceCluster
+% images from https://drive.google.com/open?id=1RJBgyVqO49sA99aOSHr6SkkiDnX3JMGP
 
 for i = 1:M
     img = im2double(rgb2gray(imread(strcat('dream\dream', int2str(i), '.jpg'))));
