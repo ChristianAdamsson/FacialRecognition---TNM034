@@ -1,45 +1,42 @@
-function [scaledImage] = scaling(im, eyeNew1, eyeNew2)
+function [out] = scaling(in)
+% author: Hilmurt 2019-11-27
 
-%function that returns a scaled image to 300*400 centered aroiund the
-%centerpoint to the eyes. 
-%im is the rotated image, eyenew1 is the left eye, eyenew2 is the right
-%one. 
+% OBS: coordinates are given as [y,x]
+
+%% read and rotate image so that eyes are horizontally alligned
+clc; close all;
+
+%in = imread('db1_01.jpg');
+
+rotate();   % dummy code to select eye positions
+
+% rotate image so that eyes are horizontally alligned  
+[rightEye, leftEye, rotatedImage] = rotateImage(in, righteye, lefteye);
+%figure, imshow(rotatedImage); title('Rotated Image')
+
+%% decide common eye positions and eye distance 
+leftEyePos = [160,80];
+commonEyeDist = 140;
+
+% compute true distance between eyes
+eyeDist = rightEye(2) - leftEye(2);
+
+% get scalefactor
+scaleFactor = commonEyeDist/eyeDist;
 
 
-[rows, columns, numberOfColorChannels] = size(im);
-diffx = (eyeNew1(2) - eyeNew2(2))/2;
-%diffy = (eyeNew2(1) - eyeNew1(1))/2;
-centery = eyeNew2(2) + diffx;
-centerx = eyeNew2(1);
+%% scale image so that eyes have default distance
 
+scaledImage = imresize(rotatedImage, scaleFactor);
+%figure, imshow(scaledImage); title('Scaled Image')
 
-height = 300;
-halfheight = height/2;
-width = 400;
-halfWidth = width /2;
-row1 = centerx - halfWidth;
-row2 = row1 + width - 1;
-col1 = centery - halfheight;
-col2 = col1 + height - 1;
+%% translate image so that eyes are at default position
+leftEye = leftEye*scaleFactor;
+translationDistance = [leftEyePos(2) - leftEye(2), leftEyePos(1) - leftEye(1)];
 
-if row1 < 1
-    row1 = 1;
+translatedImage = imtranslate(scaledImage, translationDistance);
+out = translatedImage(1:400, 1:300, :); 
+%figure, imshow(translatedImage); title('Translated Image')
+
 end
-if row2 > rows
-    row2 = rows;
-end
-if col1 < 1
-    col1 = 1;
-end
-if col2 > columns
-    col2 = columns;
-end
-%if row1 > left
-%    row1 = left;
-%end
-%if col1 < top
-%    col1 = top;
-%end
 
-%I = imresize(rotatedImage, [col2, row2]);
-scaledImage = im(row1:row2, col1:col2, :);

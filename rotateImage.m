@@ -29,9 +29,9 @@ deltaWidth = eye2_col - eye1_col;
 angle = asind(deltaHeight/deltaWidth);
 
 %% Rotate the image
-[imHeight, imWidth, channels] = size(im);
+[~, imWidth, ~] = size(im);
 rotatedImage = imrotate(im,-angle, 'bilinear');
-imshow(rotatedImage);
+%imshow(rotatedImage);
 
 %% Calculate new row/col coordinates of the eyes
 

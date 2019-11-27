@@ -61,7 +61,7 @@ e1_yNew = segA + segD;
 
 
 % Check that position is correct
-fh2 = figure; imshow(rotatedImage);
+%fh2 = figure; imshow(rotatedImage);
 %set(fh2,'NumberTitle','off','Name','Select eye')
 %[e1r_y,e1r_x] = ginput(1);
 
