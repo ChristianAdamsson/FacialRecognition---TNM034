@@ -1,12 +1,8 @@
 % This code calculates the feature vectors for a set of training images
 % Modify the code to fit your needs
 
-clear
-clc 
-close all
 
-
-M = 16;
+M = 16;  
 n = 300*400;
 k = 9;
 
@@ -14,38 +10,25 @@ k = 9;
 %% Store all images in faceCluster
 
 for i = 1:M
-    img = imread(strcat('dream\dream', int2str(i), '.jpg'));
-    faceCluster( :, :, i) = im2double(rgb2gray(img));
+    img = im2double(rgb2gray(imread(strcat('dream\dream', int2str(i), '.jpg'))));
+    faceCluster(:,i) = img(:);
 end
+clear img
 
 %% Compute average face
+averageFace = 1/M * sum(faceCluster,2);
 
-averageFace = 1/M * sum(faceCluster,3);
-imshow(averageFace);
-
-%% Compute phi, which holds each image in face cluster minus the average face
-for i = 1:M
-    phi(:,:,i) = faceCluster(:,:,i) - averageFace;
-end
-
-%% Vectorize phi
-% Each image gets stored as column vector, starting with element 
-% [1,1], [1,2], [1,3]...
-% A is phi but in vector form
-
-for i = 1:M 
-    temp = phi(:,:,i)';
-    A(:,i) = temp(:); 
-end
+%% Compute phi = A, which holds each image minus the average face
+A = faceCluster - averageFace;
+clear faceCluster
 
 %% Covariance matrix
 C = A'*A;
 
 %% Compute eigenvectors for C, will be M vectors of dimension M*1
 % V = eigenvectors, D = corresponding eigenvalues in diagonal matrix
-
 [V,D] = eig(C);
-
+clear D C
 
 %% Compute eigenvectors and store the k best ones in bestEigenvectors
 
@@ -56,6 +39,7 @@ end
 for j = 1:k
     bestEigenvectors(:,j) = U(:, M + 1 - j);
 end
+clear U
 
 %% Calculate weights for all images
 % Use only the best k eigenvectors
@@ -67,9 +51,7 @@ for i = 1:M
         w(j,i) = bestEigenvectors(:,j)'*A(:,i);
     end
 end
-
-% w(:,1) is the feature vector for image 1
-
+clear A
 
 
 
@@ -79,11 +61,11 @@ end
 
 
 
-% 
+
 % %% Reshape U into matrice to get eigenfaces
 % 
 % for i = 1:M
-%     eigenface(:,:,i) = (reshape(U(:,i),[300,400])'); %normalizeChannel
+%     eigenface(:,:,i) = (reshape(U(:,i),[400,300])); %normalizeChannel
 % end
 % 
 % % Show all eigenfaces
@@ -92,7 +74,7 @@ end
 %     subplot(4,4,i)
 %     imshow(eigenface(:,:,i))    
 % end
-
+% 
 
 
 
