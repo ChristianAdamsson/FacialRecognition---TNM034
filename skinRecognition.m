@@ -33,15 +33,15 @@ thresholdLogical = hsvImg(:, :, 1) > hMin & hsvImg(:, :, 1) < hMax & ...
     cbcrImg(:,:,2) > cbMin & cbcrImg(:,:,2) < cbMax & ...
     cbcrImg(:,:,3) > crMin & cbcrImg(:,:,3) < crMax;
 
-resultHsvImg = thresholdLogical.*hsvImg(:,:,3);
+%resultHsvImg = thresholdLogical.*hsvImg(:,:,3);
 
-resultLogical = resultHsvImg > 0.6;
+%resultLogical = resultHsvImg > 0.6;
 
-resultLogical = imclose(resultLogical, SE2_1);
-resultLogical = imclose(resultLogical, SE2_2);
-resultLogical = imopen(resultLogical, SE);
+thresholdLogical = imclose(thresholdLogical, SE2_1);
+thresholdLogical = imclose(thresholdLogical, SE2_2);
+thresholdLogical = imopen(thresholdLogical, SE);
 
-outLogical = resultLogical;
+outLogical = thresholdLogical;
 
 
 %skinImg = img.*uint8(resultLogical);
