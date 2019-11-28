@@ -103,18 +103,66 @@ end
 
 result2 = min(min(min(min(result))));
 
-%comapredFace = faceCluster - averageFace;
+
+%%
+clear
+close all
+clc
 
 %displayImages();
 
+images = cell(16,1);
 
-% img = imread('db1_02.jpg');
+for i = 1:16
+    if i < 10 
+        images{i} = imread(strcat('db1_0', int2str(i), '.jpg'));
+    else
+        images{i} = imread(strcat('db1_', int2str(i), '.jpg'));
+    end
+end
+
+figure(1);
+for i = 1:16
+    resultLogical = skinRecognition(images{i});
+    skinImg = images{i}.*uint8(resultLogical);
+    subplot(4, 4, i);
+    imshow(skinImg);
+end
+clear resultLogical skinImg
+figure(2);
+for i = 1:16
+    resultLogical = skinRecognitionV2(images{i});
+    skinImg = images{i}.*uint8(resultLogical);
+    subplot(4, 4, i);
+    imshow(skinImg);
+end
+
+%%
+clear
+close all
+clc
+
+img = imread('bilder\db0_01.jpg');
+
+%img = greyWorldAssumption(img);
+%img = referenceWhite(img);
+
+
+    resultLogical = skinRecognition(img);
+    skinImg = img.*uint8(resultLogical);
+    subplot(1, 2, 1);
+    imshow(skinImg);
+    resultLogical = skinRecognitionV2(img);
+    skinImg = img.*uint8(resultLogical);
+    subplot(1, 2, 2);
+    imshow(skinImg);
+
+
+
+%img = greyWorldAssumption(img);
+%img = referenceWhite(img);
 % 
-% 
-% %img = greyWorldAssumption(img);
-% img = referenceWhite(img);
-% 
-% resultLogical = skinRecognition(img);
+% resultLogical = skinRecognitionV2(img);
 % 
 % skinImg = img.*uint8(resultLogical);
 % 
