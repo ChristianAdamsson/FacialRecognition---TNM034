@@ -29,7 +29,7 @@ resultLogical = resultHsvImg > 0.6;
 skinImg = img.*uint8(resultLogical);
 
 %imshow(skinImg);
-resultLogical = skinRecognition(img);
+resultLogical = skinRecognitionV2(img);
 
 sMin = 0.23;
 sMax = 0.68;
