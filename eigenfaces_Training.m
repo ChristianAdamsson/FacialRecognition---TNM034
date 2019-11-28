@@ -6,10 +6,19 @@ M = 16;
 n = 300*400;
 k = 9;
 
+%%
+%Implementera färgkorrigering, (skin detection, eye mouth detection) rotation, skalning, translation
+
+
+for i = 1:M
+%     img = imread(strcat('dream\dream', int2str(i), '.jpg')
+end
+
+
 
 %% Store all images in faceCluster
 % images from https://drive.google.com/open?id=1RJBgyVqO49sA99aOSHr6SkkiDnX3JMGP
-
+% De som ska läsas in i loopen ska vara normaliserade redan
 for i = 1:M
     img = im2double(rgb2gray(imread(strcat('dream\dream', int2str(i), '.jpg'))));
     faceCluster(:,i) = img(:);
