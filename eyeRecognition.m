@@ -1,5 +1,5 @@
-function [lefteye, righteye] = eyeRecognition(img)
-%img = imread('db1_03.jpg');
+%function [lefteye, righteye] = eyeRecognition(img)
+img = imread('db1_11.jpg');
 
 
 
@@ -282,13 +282,19 @@ comboimg = ismember(labelmatrix(cc), idx);
 boundbox = regionprops(comboimg,'Area', 'BoundingBox');
 end
 
-if cc.NumObjects < 2
+cc = bwconncomp(comboimg);
+if (cc.NumObjects < 2)
  lefteye = [123,247];
  righteye = [267, 250];
 
 else
 lefteye = boundbox(1).BoundingBox(1);
 righteye = boundbox(2).BoundingBox(1);
+if(lefteye > righteye)
+   temp = lefteye;
+   lefteye = righteye;
+   righteye = temp;
+end
 
 leftline = (lefteye: lefteye + boundbox(1).BoundingBox(3));
 rightline = (righteye: righteye + boundbox(2).BoundingBox(3));
@@ -304,16 +310,16 @@ rightline = (righteye: righteye + boundbox(2).BoundingBox(3));
 yleft = boundbox(1).BoundingBox(2) + (boundbox(1).BoundingBox(4)/2);
 yright = boundbox(2).BoundingBox(2) + (boundbox(2).BoundingBox(4)/2);
 
-%figure;
-%imshow(img);
+figure;
+imshow(img);
 
 if(abs(lefteye - righteye) < 20)
    righteye = lefteye + 120; 
    yright = yleft;
 end
 %drawing lines for testing
-%line([lefteye, lefteye + boundbox(1).BoundingBox(3)], [yleft, yleft], 'Color', 'r');
-%line([righteye, righteye + boundbox(2).BoundingBox(3)], [yright, yright], 'Color', 'r');
+line([lefteye, lefteye + boundbox(1).BoundingBox(3)], [yleft, yleft], 'Color', 'r');
+line([righteye, righteye + boundbox(2).BoundingBox(3)], [yright, yright], 'Color', 'r');
 
 lefteye = [lefteye + (boundbox(1).BoundingBox(3)/2), yleft];
 
