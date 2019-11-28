@@ -10,8 +10,8 @@ function id = tnm034(im)
 %
 %
 %%
+
 imshow(im);
 id = 0;
-% Your program code:
-%%%%%%%%%%%%%%%%%%%%%%%%
 
+%%%%%%%%%%%%%%%%%%%%%%%%

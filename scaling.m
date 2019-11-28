@@ -1,4 +1,4 @@
-function [out] = scaling(in)
+function [out] = scaling(in, lefteye, righteye)
 % author: Hilmurt 2019-11-27
 
 % OBS: coordinates are given as [y,x]
@@ -8,7 +8,7 @@ clc; close all;
 
 %in = imread('db1_01.jpg');
 
-rotate();   % dummy code to select eye positions
+%rotate();   % dummy code to select eye positions
 
 % rotate image so that eyes are horizontally alligned  
 [rightEye, leftEye, rotatedImage] = rotateImage(in, righteye, lefteye);

@@ -1,3 +1,8 @@
-im = imread('image_0009.jpg');
+% träningsfas
+eigenfaces_Training();
 
-ans = tnm034(im);
+% igenkänningsfas
+im = imread('image_0009.jpg');
+id = tnm034(im);
+
+fprintf('ID: '+ id)
