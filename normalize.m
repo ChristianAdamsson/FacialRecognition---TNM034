@@ -11,8 +11,5 @@ in = referenceWhite(in);
 % rotate, scale & translate
 out = scaling(in, leftEye, rightEye);
 
-% make grey 
-out = rgb2gray(out);
-
 end
 

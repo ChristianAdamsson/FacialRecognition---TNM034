@@ -21,8 +21,8 @@ in = chromadapt(in, illuminant, 'ColorSpace', 'linear-rgb');
 % apply gamma correction by using the lin2rgb function.
 out = lin2rgb(in);
 
-figure, imshow(out)
-title('White-balanced Image')
+% figure, imshow(out)
+% title('White-balanced Image')
 
 end
 

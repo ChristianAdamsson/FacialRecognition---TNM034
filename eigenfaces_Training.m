@@ -8,7 +8,7 @@ k = 9;
 
 
 %% Store all images in faceCluster
-% images from https://drive.google.com/open?id=1RJBgyVqO49sA99aOSHr6SkkiDnX3JMGP
+% images from 
 % De som ska läsas in i loopen ska vara normaliserade redan
 for i = 1:M
     img = normalize(imread(strcat('dream\dream', int2str(i), '.jpg')));

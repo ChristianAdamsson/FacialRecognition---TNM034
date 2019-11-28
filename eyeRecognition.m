@@ -1,9 +1,7 @@
 function [lefteye, righteye] = eyeRecognition(img)
 %img = imread('db1_03.jpg');
 
-
-
-I = rgb2gray(img);
+I = rgb2gray(im2double(img));
 %% Elins implementation
 
 S = sum(img,3);

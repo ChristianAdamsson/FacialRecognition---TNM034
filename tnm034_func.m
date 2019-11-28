@@ -1,7 +1,7 @@
-% träningsfas
+%% träningsfas
 eigenfaces_Training();
 
-% igenkänningsfas
+%% igenkänningsfas
 im = imread('image_0009.jpg');
 id = tnm034(im);
 

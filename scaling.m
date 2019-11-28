@@ -6,12 +6,9 @@ function [out] = scaling(in, lefteye, righteye)
 %% read and rotate image so that eyes are horizontally alligned
 clc; close all;
 
-%in = imread('db1_01.jpg');
-
-%rotate();   % dummy code to select eye positions
-
 % rotate image so that eyes are horizontally alligned  
 [rightEye, leftEye, rotatedImage] = rotateImage(in, righteye, lefteye);
+
 %figure, imshow(rotatedImage); title('Rotated Image')
 
 %% decide common eye positions and eye distance 
@@ -28,6 +25,7 @@ scaleFactor = commonEyeDist/eyeDist;
 %% scale image so that eyes have default distance
 
 scaledImage = imresize(rotatedImage, scaleFactor);
+
 %figure, imshow(scaledImage); title('Scaled Image')
 
 %% translate image so that eyes are at default position
@@ -35,7 +33,8 @@ leftEye = leftEye*scaleFactor;
 translationDistance = [leftEyePos(2) - leftEye(2), leftEyePos(1) - leftEye(1)];
 
 translatedImage = imtranslate(scaledImage, translationDistance);
-out = translatedImage(1:400, 1:300, :); 
+out = rgb2gray(translatedImage(1:400, 1:300, :)); 
+
 %figure, imshow(translatedImage); title('Translated Image')
 
 end
