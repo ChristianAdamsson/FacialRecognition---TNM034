@@ -92,6 +92,23 @@ J2 = imerode(J2, SE4);
 %figure;
 %imshow(J2);
 
+%% försöker skapa hybrid
+
+for i = size(J2, 2)
+    for j = size(J2, 1)
+        if J2(j, i) == binaryImage(j, i)
+            hybridim (j,i) = J2(j,i);
+        else
+            hybridim(j,i) = 0
+        end
+    
+    end
+end
+
+    %imshow(hybridim)
+
+
+
 %% Lisas implementation
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -294,16 +311,14 @@ rightline = (righteye: righteye + boundbox(2).BoundingBox(3));
 %top = floor(boundbox(1).BoundingBox(2))
 %width = boundbox(1).BoundingBox(3)
 %height = boundbox(1).BoundingBox(4)
-
 yleft = boundbox(1).BoundingBox(2) + (boundbox(1).BoundingBox(4)/2);
 yright = boundbox(2).BoundingBox(2) + (boundbox(2).BoundingBox(4)/2);
 %hold on
-figure
 imshow(im)
 %line([50 100], [30 30])
 %hold on
-line([lefteye, lefteye + boundbox(1).BoundingBox(3)], [yleft, yleft], 'Color', 'r');
-line([righteye, righteye + boundbox(2).BoundingBox(3)], [yright, yright], 'Color', 'r');
+line([lefteye, lefteye + boundbox(1).BoundingBox(3)], [y, y]);
+line([lefteye, lefteye + boundbox(1).BoundingBox(3)], [y, y]);
 %hold on
 
 
@@ -323,7 +338,7 @@ line([righteye, righteye + boundbox(2).BoundingBox(3)], [yright, yright], 'Color
 im = imread('db1_01.jpg');
     
 img = rgb2ycbcr(im);
-%img = referenceWhite(img);
+img = referenceWhite(img);
     Y = im2double(img(:,:,1));
     Cb = im2double(img(:,:,2));
     Cr = im2double(img(:,:,3));
@@ -348,7 +363,7 @@ img = rgb2ycbcr(im);
     eyeMapL = NOMINATOR./(DENOMINATOR+1);
     
     %Return value
-    eyeMap = eyeMapL.*eyeMapC;
+    eyeMap = eyeMapL.*eyeMapC
     %imshow(eyeMap);
 
 
