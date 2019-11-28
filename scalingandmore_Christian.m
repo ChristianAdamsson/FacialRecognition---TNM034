@@ -86,8 +86,10 @@ imshow(rezisedimg)
 
 % först roterar vi imagen, där vi fått fram right eye och left eye genom
 % rotate(), detta behöver ske automatiskt genom eyerecog function. 
-rotate();
-[eyeNew1, eyeNew2, rotatedImage] = rotateImage(Image, righteye, lefteye);
+%rotate();
+[righteye, lefteye] = eyeRecognition(im);
+
+[eyeNew1, eyeNew2, rotatedImage] = rotateImage(im, righteye, lefteye);
 figure
 imshow(rotatedImage);
 
@@ -97,6 +99,12 @@ I = scaling(rotatedImage, eyeNew1, eyeNew2);
 figure;
 imshow(I);
 
+
+%% test face for eyerecog with everything else.
+im = imread('db1_15.jpg');
+I = scaling(im);
+figure;
+imshow(I);
 
 
 

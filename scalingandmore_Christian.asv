@@ -10,7 +10,7 @@ I = rgb2gray(im);
 %figure
 %imshow(I)
 
-%% Denn används inte just nu men vill inte ta bort det än
+%% Denna section används inte just nu men vill inte ta bort det än
 S = sum(im,3);
 [~,idx] = max(S(:));
 [row,col] = ind2sub(size(S),idx); %Hitta ljusaste punkten
@@ -79,19 +79,23 @@ figure;
 imshow(rezisedimg)
 
 %% scaling
-%ska det verkligen skalas varje gång??
+% Hur ska vi skala uniformt?
 %scaledim = imresize(rezisedimg, [400, 300]);
-%figure;
-%imshow(scaledim);
-%im = imread('db1_15.jpg');
 
-% först roterar vi
-rotate();
-[eyeNew1, eyeNew2, rotatedImage] = rotateImage(Image, righteye, lefteye);
+% todo, fixa så vi får fram ögon automatiskt. 
+
+% först roterar vi imagen, där vi fått fram right eye och left eye genom
+% rotate(), detta behöver ske automatiskt genom eyerecog function. 
+%rotate();
+[righteye, lefteye] = eyeRecognition(im);
+
+[eyeNew1, eyeNew2, rotatedImage] = rotateImage(im, righteye, lefteye);
 figure
 imshow(rotatedImage);
 
-%%
+%% calls the function to scale image around the centerpoint between the
+%%eyes. 
+im = imread(
 I = scaling(rotatedImage, eyeNew1, eyeNew2);
 figure;
 imshow(I);

@@ -8,8 +8,8 @@ clc; close all;
 
 %in = imread('db1_01.jpg');
 
-rotate();   % dummy code to select eye positions
-
+%rotate();   % dummy code to select eye positions
+[lefteye, righteye] = eyeRecognition(in);
 % rotate image so that eyes are horizontally alligned  
 [rightEye, leftEye, rotatedImage] = rotateImage(in, righteye, lefteye);
 %figure, imshow(rotatedImage); title('Rotated Image')
