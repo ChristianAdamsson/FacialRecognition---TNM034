@@ -16,7 +16,7 @@ function [eyeNew1, eyeNew2, rotatedImage] = rotateImage(im, eye1, eye2)
 
 
 %% Read in the positions and calculate the angle of rotation
-eye1_col = eye1(1);
+eye1_col = eye1(1); 
 eye1_row = eye1(2);
 
 eye2_col = eye2(1);
@@ -30,7 +30,7 @@ angle = asind(deltaHeight/deltaWidth);
 
 %% Rotate the image
 [~, imWidth, ~] = size(im);
-rotatedImage = imrotate(im,-angle, 'bilinear');
+rotatedImage = imrotate(im,real(-angle), 'bilinear');
 %imshow(rotatedImage);
 
 %% Calculate new row/col coordinates of the eyes
@@ -45,7 +45,7 @@ segF = imWidth * sind(abs(angle));
 eye1_rowNew = segF + segE;
 eye1_colNew = segA + segD;
 
-eyeNew1 = [eye1_rowNew, eye1_colNew];
-eyeNew2 = [eye1_rowNew, eye1_colNew + deltaWidth*cosd(abs(angle))];
+eyeNew1 = [eye1_colNew, eye1_rowNew];
+eyeNew2 = [eye1_colNew + deltaWidth*cosd(abs(angle)), eye1_rowNew];
 
     

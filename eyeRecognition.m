@@ -1,7 +1,7 @@
-%function [lefteye, righteye] = eyeRecognition(img)
-img = imread('db1_11.jpg');
+function [lefteye, righteye] = eyeRecognition(img)
+%img = imread('db1_11.jpg');
 
-I = rgb2gray(im2double(img));
+I = rgb2gray(img);
 %% Elins implementation
 
 S = sum(img,3);
@@ -24,7 +24,7 @@ resultLogical = resultHsvImg > 0.6;
 
 %imshow(resultLogical);
 
-skinImg = img.*uint8(resultLogical);
+%skinImg = img.*uint8(resultLogical);
 
 %imshow(skinImg);
 resultLogical = skinRecognitionV2(img);

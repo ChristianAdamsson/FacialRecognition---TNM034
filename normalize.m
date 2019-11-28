@@ -1,9 +1,9 @@
 function [out] = normalize(in)
 
-in = im2double(in);
+%in = im2double(in);
 
 % colour correct
-in = referenceWhite(in);
+%in = referenceWhite(in);
 
 % skin & eye detection
 [leftEye, rightEye] = eyeRecognition(in);
