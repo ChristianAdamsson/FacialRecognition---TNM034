@@ -1,12 +1,10 @@
 %function [lefteye, righteye] = eyeRecognition(img)
-img = imread('db1_03.jpg');
+img = imread('db1_11.jpg');
 
 
 
 I = rgb2gray(img);
 %% Elins implementation
-
-
 
 S = sum(img,3);
 [~,idx] = max(S(:));
@@ -31,7 +29,7 @@ resultLogical = resultHsvImg > 0.6;
 skinImg = img.*uint8(resultLogical);
 
 %imshow(skinImg);
-resultLogical = skinRecognition(img);
+resultLogical = skinRecognitionV2(img);
 
 sMin = 0.23;
 sMax = 0.68;
@@ -241,8 +239,8 @@ ImageIlluEdge =  EyeMap.* J2 .* resultLogical;
 %imshow(ImageIlluEdge)
 
 comboimg = ImageIlluCol .* ImageIlluEdge .* ImageColEdge;
-figure;
-imshow(comboimg);
+%figure;
+%imshow(comboimg);
 
 %imhist(comboimg);
 
@@ -284,13 +282,18 @@ comboimg = ismember(labelmatrix(cc), idx);
 boundbox = regionprops(comboimg,'Area', 'BoundingBox');
 end
 
-if boundbox.size < 2
+if boundbox.BouNumObjects < 2
  lefteye = [123,247];
  righteye = [267, 250];
-end
+
 else
 lefteye = boundbox(1).BoundingBox(1);
 righteye = boundbox(2).BoundingBox(1);
+if(lefteye > righteye)
+   temp = lefteye;
+   lefteye = righteye;
+   righteye = temp;
+end
 
 leftline = (lefteye: lefteye + boundbox(1).BoundingBox(3));
 rightline = (righteye: righteye + boundbox(2).BoundingBox(3));
@@ -313,6 +316,7 @@ if(abs(lefteye - righteye) < 20)
    righteye = lefteye + 120; 
    yright = yleft;
 end
+%drawing lines for testing
 line([lefteye, lefteye + boundbox(1).BoundingBox(3)], [yleft, yleft], 'Color', 'r');
 line([righteye, righteye + boundbox(2).BoundingBox(3)], [yright, yright], 'Color', 'r');
 
