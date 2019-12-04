@@ -11,13 +11,7 @@ function id = tnm034(im)
 %
 %%
 
-normalized = normalize(im);
-img = normalized(:) - averageFace;
-
-for j = 1:k
-    w_img(j,1) = bestEigenvectors(:,j)'*img;
-end
-clear img j
+out = normalize(im);
 
 id = 0;
 

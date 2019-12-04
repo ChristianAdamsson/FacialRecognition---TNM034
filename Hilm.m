@@ -2,6 +2,8 @@ close all
 clc
 
 in = imread('db1_04.jpg');
+out = referenceWhite(in);
+%%
 figure,imshow(in)
 title('Original')
 

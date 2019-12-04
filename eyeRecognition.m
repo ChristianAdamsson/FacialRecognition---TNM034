@@ -2,7 +2,35 @@
 img = imread('db1_05.jpg');
 I = rgb2gray(img);
 %% Elins implementation
+%img = imread('db1_11.jpg');
 
+I = rgb2gray(img);
+%% Elins implementation
+
+S = sum(img,3);
+[~,idx] = max(S(:));
+[row,col] = ind2sub(size(S),idx); %Hitta ljusaste punkten
+
+
+%imshow(img);
+%viscircles([col, row], 3, 'Color', 'b');
+
+hsvImg = rgb2hsv(img);
+
+%imshow(hsvImg);
+
+thresholdLogical = hsvImg(:, :, 1) > 0 & hsvImg(:, :, 1) < 50 & hsvImg(:,:,2) > 0.23 & hsvImg(:,:,2) < 0.68;
+
+resultHsvImg = thresholdLogical.*hsvImg(:,:,3);
+
+resultLogical = resultHsvImg > 0.6;
+
+%imshow(resultLogical);
+
+%skinImg = img.*uint8(resultLogical);
+
+%imshow(skinImg);
+>>>>>>> ac0f306aab4ec76744d765f23eceaaf7421c52d8
 resultLogical = skinRecognitionV2(img);
 
 %% Run this section for Color-based method 
