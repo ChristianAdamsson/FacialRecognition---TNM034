@@ -1,10 +1,14 @@
-%function [lefteye, righteye] = eyeRecognition(img)
-clc; close all
-imgRGB = imread('db1_02.jpg');
-I = rgb2gray(imgRGB);
+function [finalMask, lefteye, righteye] = eyeRecognition(img)
+clc;
+% imgRGB = imread('db1_01.jpg');
+ I = rgb2gray(img);
+
 
 %% Elins skin recognition
-skinMask = skinRecognitionV2(imgRGB);
+skinMask = skinRecognitionV2(img);
+
+%img = im2double(I) .* skinMask;
+% figure; imshow(img); title('skin masked img')
 
 % plocka ut området från skinMask i inbilden
 
@@ -33,7 +37,6 @@ colorBasedMask = imopen(newim, SE);
 
 
 %% Run this section for Edge based method: 
-% should probably change the way SE works. 
 
 BW1 = edge(I,'sobel');
 BW2 = edge(I,'canny');
@@ -56,9 +59,8 @@ edgeBasedMask = imerode(J2, SE4);
 
 
 %% Lisas implementation
-
-imgRGB = im2double(imgRGB);
-imYCbCr = rgb2ycbcr(imgRGB);
+img = im2double(img);
+imYCbCr = rgb2ycbcr(img);
 
 % Isolate Y Cb and Cr
 Y = imYCbCr(:,:,1);
@@ -100,18 +102,13 @@ EyeMap = (EyeMap > 0.8);    % make logical again
 
 %% Kombinera metoderna med &operation. 
 
-ImageIlluCol = EyeMap & colorBasedMask & skinMask;
-ImageColEdge = colorBasedMask & edgeBasedMask & skinMask; 
-ImageIlluEdge =  EyeMap & edgeBasedMask & skinMask;
+ImageIlluCol = EyeMap & colorBasedMask .* skinMask;
+ImageColEdge = colorBasedMask & edgeBasedMask .* skinMask; 
+ImageIlluEdge =  EyeMap & edgeBasedMask.* skinMask;
 
-%figure(1)
-%imshow(J2);
-%figure(2); 
-%imshow(binaryImage);
-%figure(3);
-%imshow(resultLogical);
-%figure(4);
-%imshow(EyeMap);
+% figure(); imshow(EyeMap); title('Lisas typ illumination')
+% figure(); imshow(colorBasedMask); title('color based mask')
+% figure(); imshow(edgeBasedMask); title('edge based mask')
 
 %figure(1)
 %imshow(ImageColEdge)
@@ -121,15 +118,8 @@ ImageIlluEdge =  EyeMap & edgeBasedMask & skinMask;
 %imshow(ImageIlluEdge)
 
 comboImg = ImageIlluCol | ImageIlluEdge | ImageColEdge;
-comboImg2 = ImageIlluCol .* ImageIlluEdge .* ImageColEdge;
-%comboimg = ImageIlluEdge;
-%comboimg = ImageIlluCol .* ImageIlluEdge;
-%comboimg = ImageColEdge;
-figure;
-imshow(comboImg);
-
-figure;
-imshow(comboImg2);
+finalMask = comboImg;
+% figure; imshow(comboImg); title('Combination of 3 masks')
 
 
 %% VAD ÄR DETTA ?! :o   nvm, tips från Daniel => ögonen är alltid i övre halvan av bilden
@@ -148,8 +138,8 @@ for y1 = (y/2):y
    end
 end
 
-%figure(2);
-%imshow(comboimg)
+% figure(2);
+% imshow(comboImg)
 %comboimg = (comboimg > 0.5);
 %imshow(comboimg);
 SE5 = strel('disk', 4, 6);
@@ -210,12 +200,12 @@ else
     yleft = boundbox(1).BoundingBox(2) + (boundbox(1).BoundingBox(4)/2);
     yright = boundbox(1).BoundingBox(2) + (boundbox(1).BoundingBox(4)/2);
 
-    figure;
-    imshow(imgRGB);
+%     figure;
+%     imshow(I);
 
     %drawing lines for testing
     line([lefteye, lefteye + 20], [yleft, yleft], 'Color', 'r');
-    line([righteye, righteye - 20], [yright, yright], 'Color', 'r');
+    line([righteye, righteye - 20], [yright, yright], 'Color', 'g');
     lefteye = [lefteye + 10, yleft];
 
     righteye = [righteye - 10, yright];
@@ -243,4 +233,4 @@ end
 %imshow(comboimg);
 
 
-
+end
