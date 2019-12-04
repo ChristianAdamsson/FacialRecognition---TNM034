@@ -1,20 +1,18 @@
-function [finalMask, lefteye, righteye] = eyeRecognition(img)
-clc;
-% imgRGB = imread('db1_01.jpg');
- I = rgb2gray(img);
+function [out, lefteye, righteye] = eyeRecognition(img)
 
+I = rgb2gray(img);
 
-%% Elins skin recognition
+%% Elins Skin recognition
 skinMask = skinRecognitionV2(img);
-
-%img = im2double(I) .* skinMask;
-% figure; imshow(img); title('skin masked img')
 
 % plocka ut området från skinMask i inbilden
 
+% img = im2double(I) .* skinMask;
+% figure; imshow(img); title('skin masked img')
 
-%% Run this section for Color-based method 
-[counts,binLocations] = imhist(I);
+
+%% Color-based method 
+% [counts,binLocations] = imhist(I);    these are not used ?
 
 % equlized histogram in grayscale
 J = histeq(I, 256);
@@ -36,7 +34,7 @@ SE = strel('disk',r,n);
 colorBasedMask = imopen(newim, SE);
 
 
-%% Run this section for Edge based method: 
+%% Edge based method: 
 
 BW1 = edge(I,'sobel');
 BW2 = edge(I,'canny');
@@ -94,13 +92,13 @@ erodedY = imerode(Y,se);
 
 EyeMapL = dilatedY./(erodedY + 1 );
 
-% Combine final eye map
+% Combine final logical eye map
 
 EyeMap = EyeMapC.*EyeMapL; 
-EyeMap = (EyeMap > 0.8);    % make logical again
+EyeMap = (EyeMap > 0.8);   
 
 
-%% Kombinera metoderna med &operation. 
+%% Kombinera de tre metoderna med &operation. 
 
 ImageIlluCol = EyeMap & colorBasedMask .* skinMask;
 ImageColEdge = colorBasedMask & edgeBasedMask .* skinMask; 
@@ -110,24 +108,12 @@ ImageIlluEdge =  EyeMap & edgeBasedMask.* skinMask;
 % figure(); imshow(colorBasedMask); title('color based mask')
 % figure(); imshow(edgeBasedMask); title('edge based mask')
 
-%figure(1)
-%imshow(ImageColEdge)
-%figure(2)
-%imshow(ImageIlluCol)
-%figure(3)
-%imshow(ImageIlluEdge)
-
 comboImg = ImageIlluCol | ImageIlluEdge | ImageColEdge;
-finalMask = comboImg;
 % figure; imshow(comboImg); title('Combination of 3 masks')
 
 
-%% VAD ÄR DETTA ?! :o   nvm, tips från Daniel => ögonen är alltid i övre halvan av bilden
-%figure(1)
-%imshow(comboimg);
+%% tips från Daniel => ögonen är alltid i övre halvan av bilden
 [y, x] = size(comboImg);
-%y = floor(y);
-%x = floor(x);
 
 % ta bort nedre halvan av ansiktsmasken 
 for y1 = (y/2):y
@@ -138,30 +124,23 @@ for y1 = (y/2):y
    end
 end
 
-% figure(2);
-% imshow(comboImg)
-%comboimg = (comboimg > 0.5);
-%imshow(comboimg);
-SE5 = strel('disk', 4, 6);
+
+% create smallest possible box around all holes
+boundbox = regionprops(comboImg,'Area', 'BoundingBox', 'Solidity', 'Orientation', 'Extent');
+cc = bwconncomp(comboImg); 
+
+ngt = find( [boundbox.Solidity] > 0.5 & abs([boundbox.Orientation]) < 45 ); % 0.8 < [boundbox.Extent] < 4.0
+comboImg = ismember(labelmatrix(cc), ngt);
+
+%SE5 = strel('disk', 4, 6);
 SE7 = strel('square', 10);
 %SE6 = strel('disk', 2, 6);
 comboImg = imdilate(comboImg, SE7);
 
-%figure(4);
-%imshow(comboimg);
-
-% bwlabeled = max(bwlabel(comboImg));
-
-
-% create smallest possible box around all holes
-boundbox = regionprops(comboImg,'Area', 'BoundingBox', 'Solidity', 'Orientation');
-ngt = find( [boundbox.Solidity] > 0.5 & abs([boundbox.Orientation]) < 45 );
-
-
 % get all remaining holes 
-cc = bwconncomp(comboImg); 
-minsizeofArea = 1;
-cc.NumObjects
+% cc = bwconncomp(comboImg); 
+% minsizeofArea = 1;
+% cc.NumObjects
 
 % remove small holes
 % while (cc.NumObjects > 2)
@@ -175,62 +154,50 @@ cc.NumObjects
 % boundbox = regionprops(comboImg,'Area', 'BoundingBox');
 % end
 
-cc = bwconncomp(comboImg);
-if (cc.NumObjects < 2)
-     lefteye = [123, 247];
-     righteye = [267, 250];
- 
-else
-   
-    lefteye = boundbox(1).BoundingBox(1);
-    righteye = boundbox(1).BoundingBox(1) + boundbox(1).BoundingBox(3);
 
-    leftline = (lefteye: lefteye + 20);
-    rightline = (righteye: righteye - 20);
 
-    %plot(leftline);
-
-    % what we get out of regionpropsfunction.boundingbox.
+% what we get out of regionpropsfunction.boundingbox.
     % [left, top, width, height]
     % left = floor(boundbox(1).BoundingBox(1))
     % top = floor(boundbox(1).BoundingBox(2))
     % width = boundbox(1).BoundingBox(3)
     % height = boundbox(1).BoundingBox(4)
+    
+% update bounding box
+boundbox = regionprops(comboImg,'BoundingBox');
+cc = bwconncomp(comboImg);
 
-    yleft = boundbox(1).BoundingBox(2) + (boundbox(1).BoundingBox(4)/2);
-    yright = boundbox(1).BoundingBox(2) + (boundbox(1).BoundingBox(4)/2);
+if (cc.NumObjects < 2)
+    lefteye = [123, 247];
+    righteye = [267, 250];
+    fprintf('Less than 2 eyes found! \n')
+else
+      
+    % x-values
+    lefteye = boundbox(1).BoundingBox(1);
+    righteye = boundbox(1).BoundingBox(1) + boundbox(1).BoundingBox(3);
 
-%     figure;
-%     imshow(I);
+    % y-values
+    yleft = boundbox(1).BoundingBox(2);
+    yright = boundbox(1).BoundingBox(2);
 
-    %drawing lines for testing
+    % drawing lines for testing
     line([lefteye, lefteye + 20], [yleft, yleft], 'Color', 'r');
     line([righteye, righteye - 20], [yright, yright], 'Color', 'g');
     lefteye = [lefteye + 10, yleft];
-
     righteye = [righteye - 10, yright];
 
 end
 
-% dummy grej om ögonen är för nära
+% error något
 if( abs(lefteye - righteye) < 20 )
-   righteye = lefteye + 120; 
-   yright = yleft;
-end
-
-% om vänster är till höger om höger 
+    fprintf('Eyes too close! \n')
+end 
 if(lefteye > righteye)
-   temp = lefteye;
-   lefteye = righteye;
-   righteye = temp;
+   fprintf('Left is right! \n')
 end
 
-%if(abs(yleft - yright) > 50)
-%    yright = 250;
-%    yleft = 250;
-%end
-%figure(5);
-%imshow(comboimg);
+out = comboImg;
 
 
 end
