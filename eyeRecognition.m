@@ -1,13 +1,10 @@
 %function [lefteye, righteye] = eyeRecognition(img)
-img = imread('db1_05.jpg');
-I = rgb2gray(img);
+img = imread('db1_02.jpg');
 %% Elins implementation
 %img = imread('db1_11.jpg');
 
 I = rgb2gray(img);
 %% Elins implementation
-
-
 resultLogical = skinRecognitionV2(img);
 
 %% Run this section for Color-based method 
@@ -42,16 +39,6 @@ SE = strel('diamond',r);
 SE2 = strel('disk', 4, n);
 SE3 = strel('diamond', 4);
 SE4 = strel('disk', 8, n);
-
-%SE = strel('diamond',r);
-%SE2 = strel('disk', 2, 4);
-%SE3 = strel('diamond', 2);
-%SE4 = strel('disk', 2, n);
-%nhood = 10;
-%SE = strel(nhood)
-%J2 = imdilate(BW1,SE);
-%J2 = imdilate(J2, SE3);
-%J2 = imerode(J2, SE2);
 
 J2 = imdilate(BW1,SE);
 J2 = imdilate(J2, SE3);
@@ -156,19 +143,17 @@ for y1 = (y/2):y
    
    end
 end
-figure(2);
-imshow(comboimg)
+%figure(2);
+%imshow(comboimg)
 %comboimg = (comboimg > 0.5);
 %imshow(comboimg);
 SE5 = strel('disk', 4, 6);
 SE7 = strel('square', 10);
 %SE6 = strel('disk', 2, 6);
 comboimg = imdilate(comboimg, SE7);
-%comboimg = imdilate(comboimg, SE6);
-%comboimg = imdilate(comboimg, SE6);
 
-figure(4);
-imshow(comboimg);
+%figure(4);
+%imshow(comboimg);
 
 bwlabeled = max(bwlabel(comboimg));
 boundbox = regionprops(comboimg,'Area', 'BoundingBox');
@@ -178,10 +163,9 @@ minsizeofArea = 1;
 cc.NumObjects
 while (cc.NumObjects > 2)
     
-minsizeofArea = minsizeofArea + 1
+minsizeofArea = minsizeofArea + 1;
 
 cc = bwconncomp(comboimg); 
-%stats = regionprops(cc, 'Area','Eccentricity'); 
 idx = find([boundbox.Area] < minsizeofArea); 
 comboimg = ismember(labelmatrix(cc), idx);
 
@@ -195,10 +179,10 @@ if (cc.NumObjects < 2)
 
 else
 lefteye = boundbox(1).BoundingBox(1);
-righteye = boundbox(2).BoundingBox(1);
+righteye = boundbox(1).BoundingBox(1) + boundbox(1).BoundingBox(3);
 
-leftline = (lefteye: lefteye + boundbox(1).BoundingBox(3));
-rightline = (righteye: righteye + boundbox(2).BoundingBox(3));
+leftline = (lefteye: lefteye + 20);
+rightline = (righteye: righteye - 20);
 %plot(leftline);
 %%
 % what we get out of regionpropsfunction.boundingbox.
@@ -209,16 +193,16 @@ rightline = (righteye: righteye + boundbox(2).BoundingBox(3));
 %height = boundbox(1).BoundingBox(4)
 
 yleft = boundbox(1).BoundingBox(2) + (boundbox(1).BoundingBox(4)/2);
-yright = boundbox(2).BoundingBox(2) + (boundbox(2).BoundingBox(4)/2);
+yright = boundbox(1).BoundingBox(2) + (boundbox(1).BoundingBox(4)/2);
 
-%figure;
-%imshow(img);
+figure;
+imshow(img);
 %drawing lines for testing
-line([lefteye, lefteye + boundbox(1).BoundingBox(3)], [yleft, yleft], 'Color', 'r');
-line([righteye, righteye + boundbox(2).BoundingBox(3)], [yright, yright], 'Color', 'r');
-lefteye = [lefteye + (boundbox(1).BoundingBox(3)/2), yleft];
+line([lefteye, lefteye + 20], [yleft, yleft], 'Color', 'r');
+line([righteye, righteye - 20], [yright, yright], 'Color', 'r');
+lefteye = [lefteye + 10, yleft];
 
-righteye = [righteye + (boundbox(2).BoundingBox(3)/2), yright];
+righteye = [righteye - 10, yright];
 
 end
 if(abs(lefteye - righteye) < 20)
@@ -235,8 +219,8 @@ end
 %    yright = 250;
 %    yleft = 250;
 %end
-figure(5);
-imshow(comboimg);
+%figure(5);
+%imshow(comboimg);
 
 
 
