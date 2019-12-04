@@ -1,5 +1,5 @@
 %function [lefteye, righteye] = eyeRecognition(img)
-img = imread('db1_02.jpg');
+img = imread('db1_16.jpg');
 %% Elins implementation
 %img = imread('db1_11.jpg');
 
