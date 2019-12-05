@@ -66,35 +66,38 @@ Cb = imYCbCr(:,:,2);
 Cr = imYCbCr(:,:,3);
 
 % normalize channels
-Y = imadjust(Y,stretchlim(Y),[0 1]);
-Cb = imadjust(Cb,stretchlim(Cb),[0 1]);
-Cr = imadjust(Cr,stretchlim(Cr),[0 1]);
+Y = normalizeChannel(Y);
+Cb = normalizeChannel(Cb);
+Cr = normalizeChannel(Cr);
 
 % cb2
 Cb2 = Cb.^2;
-Cb2 = imadjust(Cb2,stretchlim(Cb2),[0 1]);
+Cb2 = normalizeChannel(Cb2);
 
 % cr2
 Cr2 = (Cr-1).^2;
-Cr2 = imadjust(Cr2,stretchlim(Cr2),[0 1]);
+Cr2 = normalizeChannel(Cr2);
 
 % CbCr
 CbCr = Cb./Cr;
+CbCr = imadjust(CbCr,stretchlim(CbCr),[0 1]);
 
 % Eye Map Chroma
 EyeMapC = (Cb2 + Cr2 + CbCr)./3;
+EyeMapC = normalizeChannel(EyeMapC);
 
-% Eye Map Luminance
-se = strel('disk',10); 
-
+% Eye map luminance
+se = strel('disk',5);
 dilatedY = imdilate(Y,se);
 erodedY = imerode(Y,se);
 
-EyeMapL = dilatedY./(erodedY + 1 );
+EyeMapL = dilatedY./(erodedY +1 );
+normalizeChannel(EyeMapL);
 
 % Combine final logical eye map
 
 EyeMap = EyeMapC.*EyeMapL; 
+normalizeChannel(EyeMap);
 EyeMap = (EyeMap > 0.8);   
 
 
