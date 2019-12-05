@@ -98,7 +98,10 @@ normalizeChannel(EyeMapL);
 
 EyeMap = EyeMapC.*EyeMapL; 
 normalizeChannel(EyeMap);
-EyeMap = (EyeMap > 0.8);   
+
+se2 = strel('disk',5);
+EyeMap = imdilate(EyeMap,se2);
+EyeMap = (EyeMap > 0.67);  
 
 
 %% Kombinera de tre metoderna med &operation. 
