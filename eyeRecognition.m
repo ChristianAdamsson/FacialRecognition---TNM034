@@ -95,23 +95,25 @@ EyeMapL = dilatedY./(erodedY +1 );
 normalizeChannel(EyeMapL);
 
 % Combine final logical eye map
-
 EyeMap = EyeMapC.*EyeMapL; 
 normalizeChannel(EyeMap);
-EyeMap = (EyeMap > 0.8);   
+EyeMap = (EyeMap > 0.5);   
 
 
 %% Kombinera de tre metoderna med &operation. 
-
-ImageIlluCol = EyeMap & colorBasedMask .* skinMask;
-ImageColEdge = colorBasedMask & edgeBasedMask .* skinMask; 
-ImageIlluEdge =  EyeMap & edgeBasedMask.* skinMask;
+ImageIlluCol = EyeMap .* colorBasedMask .* skinMask;
+ImageColEdge = colorBasedMask .* edgeBasedMask .* skinMask; 
+ImageIlluEdge = EyeMap .* edgeBasedMask .* skinMask;
 
 % figure(); imshow(EyeMap); title('Lisas typ illumination')
 % figure(); imshow(colorBasedMask); title('color based mask')
 % figure(); imshow(edgeBasedMask); title('edge based mask')
 
-comboImg = ImageIlluCol | ImageIlluEdge | ImageColEdge;
+%comboImg = ImageIlluCol | ImageIlluEdge | ImageColEdge;
+% 
+% comboImg = ImageIlluCol | ImageIlluEdge;
+% comboImg = ImageIlluEdge | ImageColEdge;
+% comboImg = ImageIlluCol | ImageColEdge;
 % figure; imshow(comboImg); title('Combination of 3 masks')
 
 
