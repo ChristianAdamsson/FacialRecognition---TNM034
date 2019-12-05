@@ -1,63 +1,62 @@
 function [out, lefteye, righteye] = eyeRecognition(img)
 
+% image needs to be B/W for edge & illumination based methods
 I = rgb2gray(img);
 
 %% Elins Skin recognition
 skinMask = skinRecognitionV2(img);
 
 % plocka ut området från skinMask i inbilden
+%I = im2double(I) .* skinMask;
 
-% img = im2double(I) .* skinMask;
-% figure; imshow(img); title('skin masked img')
-
-
-%% Color-based method 
-% [counts,binLocations] = imhist(I);    these are not used ?
+%% Illumination-based method 
+%[counts,binLocations] = imhist(I);    % these are not used ?
 
 % equlized histogram in grayscale
-J = histeq(I, 256);
-
-% J < 20, J > 20? 
-% Both seem to work, according to the report we might wanna use J > 20?
-newim = J < 20;
-
-% dilation(newim);
+J = histeq(I);
+newim = J < 30;
 
 % Attempt in detecting the actual eyes
 % needs to define shape that we want to use morphological open on. 
 % Dilation, erotion. I think this is close to an ellipse.
 
-r = 1;
-n = 4;
-SE = strel('disk',r,n);
+r = 3;
+SE = strel('disk',r);
 
-colorBasedMask = imopen(newim, SE);
+illuminationBasedMask = imclose(newim, SE);
+
+% remove areas that are definitely not eyes
 
 
 %% Edge based method: 
 
 BW1 = edge(I,'sobel');
-BW2 = edge(I,'canny');
+% BW2 = edge(I,'canny');
 
 % probably needs some work with the SE ad erotion etc. 
-r = 2;
-n = 8;
+r1 = 1;
+r2 = 2;
+r3 = 4;
 
 %this is the things that workds for most pictures. 
-SE = strel('diamond',r);
-SE2 = strel('disk', 4, n);
-SE3 = strel('diamond', 4);
-SE4 = strel('disk', 8, n);
+SE = strel('disk', r1);
+SE2 = strel('disk', r2);
+SE3 = strel('disk', r3);
 
-J2 = imdilate(BW1,SE);
+% 2 dilation to enhance connected regions and fill holes 
+% 3 erosion to remove unwanted connected regions
+
+J2 = imdilate(BW1,SE3);
 J2 = imdilate(J2, SE3);
-j2 = imerode(J2, SE4);
-J2 = imerode(J2, SE2);
-edgeBasedMask = imerode(J2, SE4);
+J2 = imerode(J2, SE3);    
+J2 = imerode(J2, SE);
+J2 = imerode(J2, SE);
 
+edgeBasedMask = J2;
 
-%% Lisas implementation
-img = im2double(img);
+%% Lisas Color Based implementation
+
+img = im2double(img) .* skinMask;
 imYCbCr = rgb2ycbcr(img);
 
 % Isolate Y Cb and Cr
@@ -70,50 +69,57 @@ Y = normalizeChannel(Y);
 Cb = normalizeChannel(Cb);
 Cr = normalizeChannel(Cr);
 
-% cb2
-Cb2 = Cb.^2;
-Cb2 = normalizeChannel(Cb2);
+% compute stuff to combine to chroma map
+    % cb2
+    Cb2 = Cb.^2;
+    Cb2 = normalizeChannel(Cb2);
 
-% cr2
-Cr2 = (Cr-1).^2;
-Cr2 = normalizeChannel(Cr2);
+    % cr2
+    Cr2 = (Cr-1).^2;
+    Cr2 = normalizeChannel(Cr2);
 
-% CbCr
-CbCr = Cb./Cr;
-CbCr = imadjust(CbCr,stretchlim(CbCr),[0 1]);
+    % CbCr
+    CbCr = Cb./Cr;
+    CbCr = imadjust(CbCr,stretchlim(CbCr),[0 1]);
 
 % Eye Map Chroma
 EyeMapC = (Cb2 + Cr2 + CbCr)./3;
 EyeMapC = normalizeChannel(EyeMapC);
 
-% Eye map luminance
+% Eye map luminance             
 se = strel('disk',5);
 dilatedY = imdilate(Y,se);
 erodedY = imerode(Y,se);
 
-EyeMapL = dilatedY./(erodedY +1 );
+EyeMapL = dilatedY./(erodedY + 1);
 normalizeChannel(EyeMapL);
 
 % Combine final logical eye map
 EyeMap = EyeMapC.*EyeMapL; 
+se2 = strel('disk',7);
+EyeMap = imdilate(EyeMap, se2);
+
 normalizeChannel(EyeMap);
-EyeMap = (EyeMap > 0.5);   
+EyeMap = (EyeMap > 0.42);  
 
 
-%% Kombinera de tre metoderna med &operation. 
-ImageIlluCol = EyeMap .* colorBasedMask .* skinMask;
-ImageColEdge = colorBasedMask .* edgeBasedMask .* skinMask; 
+%% Kombinera de tre metoderna med &operation i olika ordning till 3 masker. 
+
+% PROVA FIND SOLIDITY PÅ VARJE MASK
+
+ImageIlluCol = EyeMap .* illuminationBasedMask .* skinMask;
+ImageColEdge = illuminationBasedMask .* edgeBasedMask .* skinMask; 
 ImageIlluEdge = EyeMap .* edgeBasedMask .* skinMask;
 
 % figure(); imshow(EyeMap); title('Lisas typ illumination')
 % figure(); imshow(colorBasedMask); title('color based mask')
 % figure(); imshow(edgeBasedMask); title('edge based mask')
 
-%comboImg = ImageIlluCol | ImageIlluEdge | ImageColEdge;
-% 
-% comboImg = ImageIlluCol | ImageIlluEdge;
-% comboImg = ImageIlluEdge | ImageColEdge;
-% comboImg = ImageIlluCol | ImageColEdge;
+% Kombinera de tre maskerna med |operation till en mask
+comboImg = ImageIlluCol | ImageIlluEdge | ImageColEdge;
+% comboImg = EyeMap;            % alla ögon med, lite mycket hår ibland
+% comboImg = illuminationBasedMask;    % alla ögon med, maaaassor annat
+% comboImg = edgeBasedMask;
 % figure; imshow(comboImg); title('Combination of 3 masks')
 
 
@@ -121,26 +127,27 @@ ImageIlluEdge = EyeMap .* edgeBasedMask .* skinMask;
 [y, x] = size(comboImg);
 
 % ta bort nedre halvan av ansiktsmasken 
-for y1 = (y/2):y
-    for x1 = 1:x
-        y1 = floor(y1);
-        x1 = floor(x1);
-        comboImg(y1, x1) = 0;
-   end
-end
+% for y1 = (y/2):y
+%     for x1 = 1:x
+%         y1 = floor(y1);
+%         x1 = floor(x1);
+%         comboImg(y1, x1) = 0;
+%    end
+% end
 
 
-% create smallest possible box around all holes
-boundbox = regionprops(comboImg,'Area', 'BoundingBox', 'Solidity', 'Orientation', 'Extent');
+% save only blobs with angle around 45 degrees
+props = regionprops(comboImg,'Area', 'BoundingBox', 'Solidity', 'Orientation', 'Extent');
 cc = bwconncomp(comboImg); 
 
-ngt = find( [boundbox.Solidity] > 0.5 & abs([boundbox.Orientation]) < 45 ); % 0.8 < [boundbox.Extent] < 4.0
+ngt = find(  abs([props.Orientation]) < 50 & [props.Solidity] > 0.5); %  0.8 < [boundbox.Extent] < 4.0
 comboImg = ismember(labelmatrix(cc), ngt);
 
-%SE5 = strel('disk', 4, 6);
-SE7 = strel('square', 10);
-%SE6 = strel('disk', 2, 6);
-comboImg = imdilate(comboImg, SE7);
+SE = strel('disk', 5);
+SE2 = strel('disk', 3);
+
+comboImg = imopen(comboImg, SE);
+comboImg = imopen(comboImg, SE2);
 
 % get all remaining holes 
 % cc = bwconncomp(comboImg); 
@@ -169,7 +176,7 @@ comboImg = imdilate(comboImg, SE7);
     % height = boundbox(1).BoundingBox(4)
     
 % update bounding box
-boundbox = regionprops(comboImg,'BoundingBox');
+props = regionprops(comboImg,'BoundingBox');
 cc = bwconncomp(comboImg);
 
 if (cc.NumObjects < 2)
@@ -179,12 +186,12 @@ if (cc.NumObjects < 2)
 else
       
     % x-values
-    lefteye = boundbox(1).BoundingBox(1);
-    righteye = boundbox(1).BoundingBox(1) + boundbox(1).BoundingBox(3);
+    lefteye = props(1).BoundingBox(1);
+    righteye = props(1).BoundingBox(1) + props(1).BoundingBox(3);
 
     % y-values
-    yleft = boundbox(1).BoundingBox(2);
-    yright = boundbox(1).BoundingBox(2);
+    yleft = props(1).BoundingBox(2);
+    yright = props(1).BoundingBox(2);
 
     % drawing lines for testing
     line([lefteye, lefteye + 20], [yleft, yleft], 'Color', 'r');
