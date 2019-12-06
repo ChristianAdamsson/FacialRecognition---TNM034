@@ -112,6 +112,11 @@ clc
 %displayImages();
 
 images = cell(16,1);
+referenceWhiteImages = cell(16,1);
+greyWorldAssumptionImages = cell(16,1);
+resultLogical = cell(16,1);
+refResultLogical = cell(16,1);
+grayResultLogical = cell(16,1);
 
 for i = 1:16
     if i < 10 
@@ -121,41 +126,97 @@ for i = 1:16
     end
 end
 
-figure(1);
+figure('Name', 'Skin Recognition V2 - Orginal');
 for i = 1:16
-    resultLogical = skinRecognition(images{i});
-    skinImg = images{i}.*uint8(resultLogical);
+    resultLogical{i} = skinRecognitionV2(images{i});
+    skinImg = images{i}.*uint8(resultLogical{i});
     subplot(4, 4, i);
     imshow(skinImg);
 end
-clear resultLogical skinImg
-figure(2);
+
+sgtitle('Skin Recognition V2 - Orginal');
+
+figure('Name', 'Orginal - Reference White');
 for i = 1:16
-    resultLogical = skinRecognitionV2(images{i});
-    skinImg = images{i}.*uint8(resultLogical);
+    referenceWhiteImages{i} = referenceWhite(images{i});
+    refResultLogical{i} = skinRecognitionV2(referenceWhiteImages{i});
+    skinImg = images{i}.*uint8(resultLogical{i}-refResultLogical{i});
     subplot(4, 4, i);
     imshow(skinImg);
 end
+
+sgtitle('Orginal - Reference White');
+
+figure('Name', 'Reference White - Orginal');
+for i = 1:16
+    skinImg = images{i}.*uint8(refResultLogical{i}-resultLogical{i});
+    subplot(4, 4, i);
+    imshow(skinImg);
+end
+
+sgtitle('Reference White - Orginal');
+
+figure('Name', 'Reference White');
+for i = 1:16
+    skinImg = images{i}.*uint8(refResultLogical{i});
+    
+    subplot(4, 4, i);
+    imshow(skinImg);
+end
+
+sgtitle('Reference White');
+
+figure('Name', 'Orginal - Gray World Assumption');
+for i = 1:16
+    greyWorldAssumptionImages{i} = greyWorldAssumption(images{i});
+    grayResultLogical{i} = skinRecognitionV2(greyWorldAssumptionImages{i});
+    skinImg = images{i}.*uint8(resultLogical{i}-grayResultLogical{i});
+    
+    subplot(4, 4, i);
+    imshow(skinImg);
+end
+sgtitle('Orginal - Gray World Assumption');
+
+figure('Name', 'Gray World Assumption - Orginal');
+for i = 1:16
+    skinImg = images{i}.*uint8(grayResultLogical{i}-resultLogical{i});
+    
+    subplot(4, 4, i);
+    imshow(skinImg);
+end
+sgtitle('Gray World Assumption - Orginal');
+
+figure('Name', 'Gray World Assumption');
+for i = 1:16
+    skinImg = images{i}.*uint8(grayResultLogical{i});
+    
+    subplot(4, 4, i);
+    imshow(skinImg);
+end
+sgtitle('Gray World Assumption');
+
 
 %%
 clear
 close all
 clc
 
-img = imread('bilder\db0_01.jpg');
+img = imread('db1_02.jpg');
 
 %img = greyWorldAssumption(img);
 %img = referenceWhite(img);
+    
+    
 
-
-    resultLogical = skinRecognition(img);
+    resultLogical = skinRecognitionV2(img);
+    [ coolt,  noRice, noSmallMacs, noLargeMacs] = CountObjects(img, resultLogical);
     skinImg = img.*uint8(resultLogical);
     subplot(1, 2, 1);
     imshow(skinImg);
     resultLogical = skinRecognitionV2(img);
     skinImg = img.*uint8(resultLogical);
     subplot(1, 2, 2);
-    imshow(skinImg);
+    imshow(coolt);
 
 
 

@@ -1,5 +1,15 @@
-function [out, lefteye, righteye] = eyeRecognition(img)
+<<<<<<< HEA
+%function [lefteye, righteye] = eyeRecognition(img)
 
+%% Elins implementation
+%img = imread('db1_11.jpg');
+
+clc; close all
+imgRGB = imread('db1_02.jpg');
+I = rgb2gray(imgRGB);
+=======
+function [out, lefteye, righteye] = eyeRecognition(img)
+>>>>>>> 7beb8faa6fa458d525e9461753e1eedfe9286acd
 
 % image needs to be B/W for edge & illumination based methods
 I = rgb2gray(img);
