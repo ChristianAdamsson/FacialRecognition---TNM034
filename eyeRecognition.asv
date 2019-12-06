@@ -15,6 +15,7 @@ newim = J < 30;
 
 r = 3;
 SE = strel('disk',r);
+
 illuminationBasedMask = imclose(newim, SE);
 
 
@@ -99,11 +100,16 @@ ImageIlluCol = EyeMap .* illuminationBasedMask .* skinMask;
 ImageColEdge = illuminationBasedMask .* edgeBasedMask .* skinMask; 
 ImageIlluEdge = EyeMap .* edgeBasedMask .* skinMask;
 
+% figure(); imshow(EyeMap); title('Lisas typ illumination')
+% figure(); imshow(colorBasedMask); title('color based mask')
+% figure(); imshow(edgeBasedMask); title('edge based mask')
+
 % Kombinera de tre maskerna med |operation till en mask
 comboImg = ImageIlluCol | ImageIlluEdge | ImageColEdge;
-% comboImg = EyeMap;            
-% comboImg = illuminationBasedMask;    
+% comboImg = EyeMap;            % alla ögon med, lite mycket hår ibland
+% comboImg = illuminationBasedMask;    % alla ögon med, maaaassor annat
 % comboImg = edgeBasedMask;
+% figure; imshow(comboImg); title('Combination of 3 masks')
 
 
 %% tips från Daniel => ögonen är alltid i övre halvan av bilden
@@ -129,8 +135,7 @@ comboImg = imopen(comboImg, SE2);
     % width = boundbox(1).BoundingBox(3)
     % height = boundbox(1).BoundingBox(4)
     
-
-    % update bounding box
+% update bounding box
 boundingbox = regionprops(comboImg,'BoundingBox');
 cc = bwconncomp(comboImg);
 
