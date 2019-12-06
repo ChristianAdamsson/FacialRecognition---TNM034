@@ -6,11 +6,8 @@ I = rgb2gray(img);
 %% Elins Skin recognition
 skinMask = skinRecognitionV2(img);
 
-% plocka ut området från skinMask i inbilden
-%I = im2double(I) .* skinMask;
 
 %% Illumination-based method 
-%[counts,binLocations] = imhist(I);    % these are not used ?
 
 % equlized histogram in grayscale
 J = histeq(I);
@@ -24,8 +21,6 @@ r = 3;
 SE = strel('disk',r);
 
 illuminationBasedMask = imclose(newim, SE);
-
-% remove areas that are definitely not eyes
 
 
 %% Edge based method: 
@@ -176,7 +171,7 @@ comboImg = imopen(comboImg, SE2);
     % height = boundbox(1).BoundingBox(4)
     
 % update bounding box
-props = regionprops(comboImg,'BoundingBox');
+boundingbox = regionprops(comboImg,'BoundingBox');
 cc = bwconncomp(comboImg);
 
 if (cc.NumObjects < 2)
@@ -186,12 +181,12 @@ if (cc.NumObjects < 2)
 else
       
     % x-values
-    lefteye = props(1).BoundingBox(1);
-    righteye = props(1).BoundingBox(1) + props(1).BoundingBox(3);
+    lefteye = boundingbox(1).BoundingBox(1);
+    righteye = boundingbox(1).BoundingBox(1) + boundingbox(1).BoundingBox(3);
 
     % y-values
-    yleft = props(1).BoundingBox(2);
-    yright = props(1).BoundingBox(2);
+    yleft = boundingbox(1).BoundingBox(2);
+    yright = boundingbox(1).BoundingBox(2);
 
     % drawing lines for testing
     line([lefteye, lefteye + 20], [yleft, yleft], 'Color', 'r');
