@@ -108,8 +108,8 @@ comboImg = ImageIlluCol | ImageIlluEdge | ImageColEdge;
 
 %% tips från Daniel => ögonen är alltid i övre halvan av bilden
 
-% save only blobs with angle around 45 degrees
-props = regionprops(comboImg,'Area', 'BoundingBox', 'Solidity', 'Orientation', 'Extent');
+% save only high density blobs with angle around 45 degrees and specified area 
+props = regionprops(comboImg,'Area', 'Solidity', 'Orientation');
 cc = bwconncomp(comboImg); 
 
 eyeBlobs = find( abs([props.Orientation]) < 50 & [props.Solidity] > 0.5 & [props.Area] > 350 & [props.Area] < 3500); 
@@ -122,7 +122,7 @@ comboImg = imopen(comboImg, SE);
 comboImg = imopen(comboImg, SE2);
 
 
-% what we get out of regionpropsfunction.boundingbox.
+%% what we get out of regionpropsfunction.boundingbox.
     % [left, top, width, height]
     % left = floor(boundbox(1).BoundingBox(1))
     % top = floor(boundbox(1).BoundingBox(2))
@@ -130,9 +130,11 @@ comboImg = imopen(comboImg, SE2);
     % height = boundbox(1).BoundingBox(4)
     
 
-    % update bounding box
-boundingbox = regionprops(comboImg,'BoundingBox');
+%% update bounding box
+boundbox = regionprops(comboImg,'BoundingBox');
 cc = bwconncomp(comboImg);
+
+% cc.NumObjects
 
 if (cc.NumObjects < 2)
     lefteye = [123, 247];
@@ -141,12 +143,12 @@ if (cc.NumObjects < 2)
 else
       
     % x-values
-    lefteye = boundingbox(1).BoundingBox(1);
-    righteye = boundingbox(1).BoundingBox(1) + boundingbox(1).BoundingBox(3);
+    lefteye = boundbox(1).BoundingBox(1) + 0.5*boundbox(1).BoundingBox(3);
+    righteye = boundbox(2).BoundingBox(1)+ 0.5*boundbox(2).BoundingBox(3);
 
     % y-values
-    yleft = boundingbox(1).BoundingBox(2);
-    yright = boundingbox(1).BoundingBox(2);
+    yleft = boundbox(1).BoundingBox(2) + 0.5*boundbox(1).BoundingBox(4);
+    yright = boundbox(2).BoundingBox(2) + 0.5*boundbox(2).BoundingBox(4);
 
     % drawing lines for testing
     line([lefteye, lefteye + 20], [yleft, yleft], 'Color', 'r');
@@ -163,6 +165,7 @@ end
 if(lefteye > righteye)
    fprintf('Left is right! \n')
 end
+
 
 out = comboImg;
 
