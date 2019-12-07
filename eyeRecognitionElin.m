@@ -1,64 +1,70 @@
-% function [out, lefteye, righteye] = eyeRecognition(img)
+function [out, lefteye, righteye] = eyeRecognition(img)
 
-img = imread('db1_09.jpg');
+maximumHeightDifference = 10;
+minimumSpaceBetweenBlobs = 70;
+maximumSpaceBetweenBlobs = 300;
+smallestArea = 300;
+biggesttArea = 2000;
+
+% imshow(img);
+% figure;
+
+% image needs to be B/W for edge & illumination based methods
 I = rgb2gray(img);
 
 %% Elins Skin recognition
 skinMask = skinRecognitionV2(img);
 
-% plocka ut området från skinMask i inbilden
+% skinImg = img.*uint8(skinMask);
+% 
+% imshow(skinImg);
+% figure;
 
-% img = im2double(I) .* skinMask;
-% figure; imshow(img); title('skin masked img')
-
-
-%% Color-based method 
-% [counts,binLocations] = imhist(I);    these are not used ?
+%% Illumination-based method 
 
 % equlized histogram in grayscale
-J = histeq(I, 256);
-
-% J < 20, J > 20? 
-% Both seem to work, according to the report we might wanna use J > 20?
-newim = J < 20;
-
-% dilation(newim);
+J = histeq(I);
+newim = J < 30;
 
 % Attempt in detecting the actual eyes
 % needs to define shape that we want to use morphological open on. 
 % Dilation, erotion. I think this is close to an ellipse.
 
-r = 1;
-n = 4;
-SE = strel('disk',r,n);
+r = 3;
+SE = strel('disk',r);
 
-colorBasedMask = imopen(newim, SE);
+illuminationBasedMask = imclose(newim, SE);
 
 
 %% Edge based method: 
 
 BW1 = edge(I,'sobel');
-BW2 = edge(I,'canny');
+% BW2 = edge(I,'canny');
 
 % probably needs some work with the SE ad erotion etc. 
-r = 2;
-n = 8;
+r1 = 1;
+r2 = 2;
+r3 = 4;
 
 %this is the things that workds for most pictures. 
-SE = strel('diamond',r);
-SE2 = strel('disk', 4, n);
-SE3 = strel('diamond', 4);
-SE4 = strel('disk', 8, n);
+SE = strel('disk', r1);
+SE2 = strel('disk', r2);
+SE3 = strel('disk', r3);
 
-J2 = imdilate(BW1,SE);
+% 2 dilation to enhance connected regions and fill holes 
+% 3 erosion to remove unwanted connected regions
+
+J2 = imdilate(BW1,SE3);
 J2 = imdilate(J2, SE3);
-j2 = imerode(J2, SE4);
-J2 = imerode(J2, SE2);
-edgeBasedMask = imerode(J2, SE4);
+J2 = imerode(J2, SE3);    
+J2 = imerode(J2, SE);
+J2 = imerode(J2, SE);
 
+edgeBasedMask = J2;
 
-%% Lisas implementation
-img = im2double(img);
+%% Lisas Color Based implementation
+
+img = im2double(img) .* skinMask;
 imYCbCr = rgb2ycbcr(img);
 
 % Isolate Y Cb and Cr
@@ -67,49 +73,61 @@ Cb = imYCbCr(:,:,2);
 Cr = imYCbCr(:,:,3);
 
 % normalize channels
-Y = imadjust(Y,stretchlim(Y),[0 1]);
-Cb = imadjust(Cb,stretchlim(Cb),[0 1]);
-Cr = imadjust(Cr,stretchlim(Cr),[0 1]);
+Y = normalizeChannel(Y);
+Cb = normalizeChannel(Cb);
+Cr = normalizeChannel(Cr);
 
-% cb2
-Cb2 = Cb.^2;
-Cb2 = imadjust(Cb2,stretchlim(Cb2),[0 1]);
+% compute stuff to combine to chroma map
+    % cb2
+    Cb2 = Cb.^2;
+    Cb2 = normalizeChannel(Cb2);
 
-% cr2
-Cr2 = (Cr-1).^2;
-Cr2 = imadjust(Cr2,stretchlim(Cr2),[0 1]);
+    % cr2
+    Cr2 = (Cr-1).^2;
+    Cr2 = normalizeChannel(Cr2);
 
-% CbCr
-CbCr = Cb./Cr;
+    % CbCr
+    CbCr = Cb./Cr;
+    CbCr = imadjust(CbCr,stretchlim(CbCr),[0 1]);
 
 % Eye Map Chroma
 EyeMapC = (Cb2 + Cr2 + CbCr)./3;
+EyeMapC = normalizeChannel(EyeMapC);
 
-% Eye Map Luminance
-se = strel('disk',10); 
-
+% Eye map luminance             
+se = strel('disk',5);
 dilatedY = imdilate(Y,se);
 erodedY = imerode(Y,se);
 
-EyeMapL = dilatedY./(erodedY + 1 );
+EyeMapL = dilatedY./(erodedY + 1);
+normalizeChannel(EyeMapL);
 
 % Combine final logical eye map
-
 EyeMap = EyeMapC.*EyeMapL; 
-EyeMap = (EyeMap > 0.8);   
+se2 = strel('disk',7);
+EyeMap = imdilate(EyeMap, se2);
+
+normalizeChannel(EyeMap);
+EyeMap = (EyeMap > 0.42);  
 
 
-%% Kombinera de tre metoderna med &operation. 
+%% Kombinera de tre metoderna med &operation i olika ordning till 3 masker. 
 
-ImageIlluCol = EyeMap & colorBasedMask .* skinMask;
-ImageColEdge = colorBasedMask & edgeBasedMask .* skinMask; 
-ImageIlluEdge =  EyeMap & edgeBasedMask.* skinMask;
+% PROVA FIND SOLIDITY PÅ VARJE MASK
+
+ImageIlluCol = EyeMap .* illuminationBasedMask .* skinMask;
+ImageColEdge = illuminationBasedMask .* edgeBasedMask .* skinMask; 
+ImageIlluEdge = EyeMap .* edgeBasedMask .* skinMask;
 
 % figure(); imshow(EyeMap); title('Lisas typ illumination')
 % figure(); imshow(colorBasedMask); title('color based mask')
 % figure(); imshow(edgeBasedMask); title('edge based mask')
 
+% Kombinera de tre maskerna med |operation till en mask
 comboImg = ImageIlluCol | ImageIlluEdge | ImageColEdge;
+% comboImg = EyeMap;            % alla ögon med, lite mycket hår ibland
+% comboImg = illuminationBasedMask;    % alla ögon med, maaaassor annat
+% comboImg = edgeBasedMask;
 % figure; imshow(comboImg); title('Combination of 3 masks')
 
 
@@ -117,26 +135,27 @@ comboImg = ImageIlluCol | ImageIlluEdge | ImageColEdge;
 [y, x] = size(comboImg);
 
 % ta bort nedre halvan av ansiktsmasken 
-for y1 = (y/2):y
-    for x1 = 1:x
-        y1 = floor(y1);
-        x1 = floor(x1);
-        comboImg(y1, x1) = 0;
-   end
-end
+% for y1 = (y/2):y
+%     for x1 = 1:x
+%         y1 = floor(y1);
+%         x1 = floor(x1);
+%         comboImg(y1, x1) = 0;
+%    end
+% end
 
 
-% create smallest possible box around all holes
-boundbox = regionprops(comboImg,'Area', 'BoundingBox', 'Solidity', 'Orientation', 'Extent');
+% save only blobs with angle around 45 degrees
+props = regionprops(comboImg,'Area', 'BoundingBox', 'Solidity', 'Orientation', 'Extent');
 cc = bwconncomp(comboImg); 
 
-ngt = find( [boundbox.Solidity] > 0.5 & abs([boundbox.Orientation]) < 45 ); % 0.8 < [boundbox.Extent] < 4.0
+ngt = find(  abs([props.Orientation]) < 50 & [props.Solidity] > 0.5); %  0.8 < [boundbox.Extent] < 4.0
 comboImg = ismember(labelmatrix(cc), ngt);
 
-%SE5 = strel('disk', 4, 6);
-SE7 = strel('square', 10);
-%SE6 = strel('disk', 2, 6);
-comboImg = imdilate(comboImg, SE7);
+SE = strel('disk', 5);
+SE2 = strel('disk', 3);
+
+comboImg = imopen(comboImg, SE);
+comboImg = imopen(comboImg, SE2);
 
 % get all remaining holes 
 % cc = bwconncomp(comboImg); 
@@ -163,89 +182,227 @@ comboImg = imdilate(comboImg, SE7);
     % top = floor(boundbox(1).BoundingBox(2))
     % width = boundbox(1).BoundingBox(3)
     % height = boundbox(1).BoundingBox(4)
-    
-% update bounding box
-boundbox = regionprops(comboImg,'BoundingBox');
-cc = bwconncomp(comboImg);
+%     
+% % update bounding box
+% boundingbox = regionprops(comboImg,'BoundingBox');
+% cc = bwconncomp(comboImg);
+% 
+% if (cc.NumObjects < 2)
+%     lefteye = [123, 247];
+%     righteye = [267, 250];
+%     fprintf('Less than 2 eyes found! \n')
+% else
+%       
+%     % x-values
+%     lefteye = boundingbox(1).BoundingBox(1);
+%     righteye = boundingbox(1).BoundingBox(1) + boundingbox(1).BoundingBox(3);
+% 
+%     % y-values
+%     yleft = boundingbox(1).BoundingBox(2);
+%     yright = boundingbox(1).BoundingBox(2);
+% 
+%     % drawing lines for testing
+%     line([lefteye, lefteye + 20], [yleft, yleft], 'Color', 'r');
+%     line([righteye, righteye - 20], [yright, yright], 'Color', 'g');
+%     lefteye = [lefteye + 10, yleft];
+%     righteye = [righteye - 10, yright];
+% 
+% end
 
-if (cc.NumObjects < 2)
-    lefteye = [123, 247];
-    righteye = [267, 250];
-    fprintf('Less than 2 eyes found! \n')
-else
-      
-    % x-values
-    lefteye = boundbox(1).BoundingBox(1);
-    righteye = boundbox(1).BoundingBox(1) + boundbox(1).BoundingBox(3);
 
-    % y-values
-    yleft = boundbox(1).BoundingBox(2);
-    yright = boundbox(1).BoundingBox(2);
-
-    % drawing lines for testing
-    line([lefteye, lefteye + 20], [yleft, yleft], 'Color', 'r');
-    line([righteye, righteye - 20], [yright, yright], 'Color', 'g');
-    lefteye = [lefteye + 10, yleft];
-    righteye = [righteye - 10, yright];
-
-end
-
-% error något
-if( abs(lefteye - righteye) < 20 )
-    fprintf('Eyes too close! \n')
-end 
-if(lefteye > righteye)
-   fprintf('Left is right! \n')
-end
-
-out = comboImg;
 
 labeledImage=bwlabel(comboImg);
+% imshow(labeledImage/max(max(labeledImage)));
+% figure;
+s = regionprops(logical(labeledImage),'centroid');
+centroids = cat(1,s.Centroid);
+if(max(max(labeledImage)) > 1)
+    clear pairs;
+    counter = 1;
+    %Find all pairs of blobs that are horizontal
+    for i = 1:(max(max(labeledImage))-1)
+        for j = i+1:max(max(labeledImage))
+            if(abs(centroids(i,2)-centroids(j,2)) < maximumHeightDifference)
+                pairs(counter) = i;
+                counter = counter + 1;
+                pairs(counter) = j;
+                counter = counter + 1;
+            end
+        end
+    end
+    %We delete all the blobs that dont have a horizontal blob friend then
+    %we invert that image and re-lable the new image since some blobs are
+    %gone now. We also figure out the centers of the blobs again so they
+    %keep the same index as the labels. 
+    labelsPresent = unique(labeledImage(:));
+    labelsToKeep = setdiff(labelsPresent, pairs);
+    binaryImage = ismember(labeledImage, labelsToKeep);
+    labeledImage = ~bwlabel(binaryImage);
+    labeledImage = bwlabel(labeledImage);
+    
+    s = regionprops(logical(labeledImage),'centroid');
+    centroids2 = cat(1,s.Centroid);
+    
+    % Now with some blobs gone the index of the pairs will be wrong so we
+    % find the pairs again
+    clear pairs;
+    counter = 1;
+    for i = 1:(max(max(labeledImage))-1)
+        for j = i+1:max(max(labeledImage))
+            if(abs(centroids2(i,2)-centroids2(j,2)) < maximumHeightDifference)
+                pairs(counter) = i;
+                counter = counter + 1;
+                pairs(counter) = j;
+                counter = counter + 1;
+            end
+        end
+    end
+    
+    %If we have not found our two eyes then we remove any blob pair that
+    %are too close or too far apart from eachother 
+    if(max(max(labeledImage)) > 2)
+        counter = 2;
+        for i = 1:2:(length(pairs))
+            distance = abs(centroids2(pairs(counter),1)-centroids2(pairs(i),1));
+            if(distance < minimumSpaceBetweenBlobs || distance > maximumSpaceBetweenBlobs)
+                tempMask = ismember(labeledImage, pairs(i));
+                labeledImage(tempMask) = 0;
+                tempMask = ismember(labeledImage, pairs(counter));
+                labeledImage(tempMask) = 0;
+            end
+            counter = counter + 2;
+        end
 
-s = regionprops(comboImg,'centroid');
+%         %If more then two blobs, remove all the big and small blobs
+%         imshow(labeledImage/max(max(labeledImage)));
+%         figure;
+        loigicalImage = bwareaopen(labeledImage, smallestArea);
+        labeledImage = bwlabel(loigicalImage);
+        if(max(max(labeledImage)) > 2)
+            CC = bwconncomp(labeledImage);
+            props = regionprops(CC, 'Area');
+            L = labelmatrix(CC);
+            loigicalImage = ismember(L, find([props.Area] <= biggesttArea));
+            labeledImage = bwlabel(loigicalImage);
+        end
+    end
+end
+
+labeledImage = bwlabel(labeledImage);
+s = regionprops(logical(labeledImage),'centroid');
 centroids = cat(1,s.Centroid);
 
-
-maximumHeightDifference = 10;
-maximumSpaceBetweenBlobs = 50;
-
-for i = 1:(max(max(labeledImage))-1)
-    for j = i+1:max(max(labeledImage))
-        distance = sqrt( (centroids(j,1)-centroids(i,1))^2 + (centroids(j,2)-centroids(i,2))^2 )
-        if(distance < maximumSpaceBetweenBlobs)
-            tempMask = ismember(labeledImage, i);
-            labeledImage(tempMask) = 0;
-            tempMask = ismember(labeledImage, j);
-            labeledImage(tempMask) = 0;
-        end
-    end
-end
-
-labeledImage=bwlabel(labeledImage);
-s = regionprops(logical(labeledImage),'centroid');
-centroids2 = cat(1,s.Centroid);
-clear pairs;
-counter = 1;
-for i = 1:(max(max(labeledImage))-1)
-    for j = i+1:max(max(labeledImage))
-        if(abs(centroids2(i,2)-centroids2(j,2)) < maximumHeightDifference)
-            pairs(counter,:) = [i,j];
-            counter = counter + 1;
-        end
-    end
+if(max(max(labeledImage)) > 1)
+    lefteye = [centroids(1,1), centroids(1,2)];
+    righteye = [centroids(2,1), centroids(2,2)];
+else
+    lefteye = [123, 247];
+    righteye = [267, 250];
+    failState = true;
 end
 
 
-imshow(labeledImage/max(max(labeledImage)))
-hold on
-plot(centroids(:,1),centroids(:,2),'b*')
+out = labeledImage;
 
-BW5 = bwmorph(labeledImage,'skel',Inf);
-labeledLines=bwlabel(BW5);
+end
 
-
-%imshow(comboImg)
+% imshow(labeledImage/max(max(labeledImage)));
 
 % end
+
+% %% tips från Daniel => ögonen är alltid i övre halvan av bilden
+% [y, x] = size(comboImg);
+% 
+% % ta bort nedre halvan av ansiktsmasken 
+% for y1 = (y/2):y
+%     for x1 = 1:x
+%         y1 = floor(y1);
+%         x1 = floor(x1);
+%         comboImg(y1, x1) = 0;
+%    end
+% end
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% labeledImage=bwlabel(comboImg);
+% 
+% s = regionprops(comboImg,'centroid');
+% centroids = cat(1,s.Centroid);
+% 
+% 
+% maximumHeightDifference = 10;
+% maximumSpaceBetweenBlobs = 50;
+% 
+% for i = 1:(max(max(labeledImage))-1)
+%     for j = i+1:max(max(labeledImage))
+%         distance = sqrt( (centroids(j,1)-centroids(i,1))^2 + (centroids(j,2)-centroids(i,2))^2 )
+%         if(distance < maximumSpaceBetweenBlobs)
+%             tempMask = ismember(labeledImage, i);
+%             labeledImage(tempMask) = 0;
+%             tempMask = ismember(labeledImage, j);
+%             labeledImage(tempMask) = 0;
+%         end
+%     end
+% end
+% 
+% labeledImage=bwlabel(labeledImage);
+% s = regionprops(logical(labeledImage),'centroid');
+% centroids2 = cat(1,s.Centroid);
+% clear pairs;
+% counter = 1;
+% for i = 1:(max(max(labeledImage))-1)
+%     for j = i+1:max(max(labeledImage))
+%         if(abs(centroids2(i,2)-centroids2(j,2)) < maximumHeightDifference)
+%             pairs(counter,:) = [i,j];
+%             counter = counter + 1;
+%         end
+%     end
+% end
+% 
+% 
+% imshow(labeledImage/max(max(labeledImage)))
+% hold on
+% plot(centroids(:,1),centroids(:,2),'b*')
+% 
+% BW5 = bwmorph(labeledImage,'skel',Inf);
+% labeledLines=bwlabel(BW5);
+% 
+% 
+% %%
+% 
+% maximumHeightDifference = 10;
+% maximumSpaceBetweenBlobs = 50;
+% 
+% labeledImage=bwlabel(comboImg);
+% s = regionprops(logical(labeledImage),'centroid');
+% centroids2 = cat(1,s.Centroid);
+% if(max(max(labeledImage)) > 1)
+%     clear pairs;
+%     counter = 1;
+%     for i = 1:(max(max(labeledImage))-1)
+%         for j = i+1:max(max(labeledImage))
+%             if(abs(centroids2(i,2)-centroids2(j,2)) < maximumHeightDifference)
+%                 pairs(counter,:) = [i,j];
+%                 counter = counter + 1;
+%                 foundPair = true;
+%             end
+%         end
+%     end
+%     for i = 1:size(pairs)
+%         
+%     end
+% else
+%     lefteye = [123, 247];
+%     righteye = [267, 250];
+%     failState = true;
+% end
+% 
+% %imshow(comboImg)
+% 
+% % end
 
 
