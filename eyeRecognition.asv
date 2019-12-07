@@ -15,6 +15,7 @@ newim = J < 30;
 
 r = 3;
 SE = strel('disk',r);
+
 illuminationBasedMask = imclose(newim, SE);
 
 
@@ -99,17 +100,22 @@ ImageIlluCol = EyeMap .* illuminationBasedMask .* skinMask;
 ImageColEdge = illuminationBasedMask .* edgeBasedMask .* skinMask; 
 ImageIlluEdge = EyeMap .* edgeBasedMask .* skinMask;
 
+% figure(); imshow(EyeMap); title('Lisas typ illumination')
+% figure(); imshow(colorBasedMask); title('color based mask')
+% figure(); imshow(edgeBasedMask); title('edge based mask')
+
 % Kombinera de tre maskerna med |operation till en mask
 comboImg = ImageIlluCol | ImageIlluEdge | ImageColEdge;
-% comboImg = EyeMap;            
-% comboImg = illuminationBasedMask;    
+% comboImg = EyeMap;            % alla ögon med, lite mycket hår ibland
+% comboImg = illuminationBasedMask;    % alla ögon med, maaaassor annat
 % comboImg = edgeBasedMask;
+% figure; imshow(comboImg); title('Combination of 3 masks')
 
 
 %% tips från Daniel => ögonen är alltid i övre halvan av bilden
 
-% save only high density blobs with angle around 45 degrees and specified area 
-props = regionprops(comboImg,'Area', 'Solidity', 'Orientation');
+% save only blobs with angle around 45 degrees
+props = regionprops(comboImg,'Area', 'BoundingBox', 'Solidity', 'Orientation', 'Extent');
 cc = bwconncomp(comboImg); 
 
 eyeBlobs = find( abs([props.Orientation]) < 50 & [props.Solidity] > 0.5 & [props.Area] > 350 & [props.Area] < 3500); 
@@ -122,19 +128,16 @@ comboImg = imopen(comboImg, SE);
 comboImg = imopen(comboImg, SE2);
 
 
-%% what we get out of regionpropsfunction.boundingbox.
+% what we get out of regionpropsfunction.boundingbox.
     % [left, top, width, height]
     % left = floor(boundbox(1).BoundingBox(1))
     % top = floor(boundbox(1).BoundingBox(2))
     % width = boundbox(1).BoundingBox(3)
     % height = boundbox(1).BoundingBox(4)
     
-
-%% update bounding box
-boundbox = regionprops(comboImg,'BoundingBox');
+% update bounding box
+boundingbox = regionprops(comboImg,'BoundingBox');
 cc = bwconncomp(comboImg);
-
-% cc.NumObjects
 
 if (cc.NumObjects < 2)
     lefteye = [123, 247];
@@ -143,12 +146,12 @@ if (cc.NumObjects < 2)
 else
       
     % x-values
-    lefteye = boundbox(1).BoundingBox(1) + 0.5*boundbox(1).BoundingBox(3);
-    righteye = boundbox(2).BoundingBox(1)+ 0.5*boundbox(2).BoundingBox(3);
+    lefteye = boundingbox(1).BoundingBox(1);
+    righteye = boundingbox(1).BoundingBox(1) + boundingbox(1).BoundingBox(3);
 
     % y-values
-    yleft = boundbox(1).BoundingBox(2) + 0.5*boundbox(1).BoundingBox(4);
-    yright = boundbox(2).BoundingBox(2) + 0.5*boundbox(2).BoundingBox(4);
+    yleft = boundingbox(1).BoundingBox(2);
+    yright = boundingbox(1).BoundingBox(2);
 
     % drawing lines for testing
     line([lefteye, lefteye + 20], [yleft, yleft], 'Color', 'r');
@@ -165,7 +168,6 @@ end
 if(lefteye > righteye)
    fprintf('Left is right! \n')
 end
-
 
 out = comboImg;
 
