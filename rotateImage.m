@@ -26,7 +26,7 @@ eye2_row = eye2(2);
 deltaHeight = eye1_row - eye2_row;
 deltaWidth = eye2_col - eye1_col;
 
-angle = asind(deltaHeight/deltaWidth);
+angle = asind(deltaHeight/deltaWidth); % Vafan detta måste ju vara tangens?????? wtf
 
 %% Rotate the image
 [~, imWidth, ~] = size(im);
