@@ -2,9 +2,18 @@ clear
 close all
 clc
 
+image = greyWorldAssumption(imread('bilder\bl_10.jpg')); 
+skinMask = skinRecognitionV2(image);
+imshow(image.*uint8(skinMask));
+
+%%
+clear
+close all
+clc
+
 %displayImages();
 
-images = cell(16,1);
+images = cell(54,1);
 referenceWhiteImages = cell(16,1);
 greyWorldAssumptionImages = cell(16,1);
 resultLogical = cell(16,1);
@@ -18,16 +27,99 @@ for i = 1:16
         images{i} = imread(strcat('db1_', int2str(i), '.jpg'));
     end
 end
+images{17} = imread('bilder\bl_01.jpg'); images{18} = imread('bilder\bl_02.jpg'); images{19} = imread('bilder\bl_04.jpg');
+images{20} = imread('bilder\bl_05.jpg'); images{21} = imread('bilder\bl_06.jpg'); images{22} = imread('bilder\bl_07.jpg');
+images{23} = imread('bilder\bl_10.jpg'); images{24} = imread('bilder\bl_13.jpg'); images{25} = imread('bilder\bl_14.jpg');
 
-figure('Name', 'Skin Recognition V2 - Orginal');
+counter = 1;
+for i = 26:41
+    if counter < 10 
+        images{i} = imread(strcat('bilder\cl_0', int2str(counter), '.jpg'));
+    else
+        images{i} = imread(strcat('bilder\cl_', int2str(counter), '.jpg'));
+    end
+    counter = counter + 1;
+end
+
+images{42} = imread('bilder\ex_01.jpg'); images{43} = imread('bilder\ex_03.jpg'); images{44} = imread('bilder\ex_04.jpg');
+images{45} = imread('bilder\ex_07.jpg'); images{46} = imread('bilder\ex_09.jpg'); images{47} = imread('bilder\ex_11.jpg');
+images{48} = imread('bilder\ex_12.jpg'); 
+
+images{49} = imread('bilder\il_01.jpg'); images{50} = imread('bilder\il_07.jpg'); images{51} = imread('bilder\il_08.jpg');
+images{52} = imread('bilder\il_09.jpg'); images{53} = imread('bilder\il_12.jpg'); images{54} = imread('bilder\il_16.jpg');
+
+figure('Name', 'DB1');
 for i = 1:16
     [resultLogical{i}, leftEye, rightEye] = eyeRecognitionElin(images{i});
     subplot(4, 4, i);   
-    labelResult = bwlabel(resultLogical{i});
     imshow(images{i}); 
     hold on
-    plot(leftEye(1),leftEye(2), 'r+', 'MarkerSize', 10, 'LineWidth', 2);
+    plot(leftEye(1),leftEye(2), 'g+', 'MarkerSize', 10, 'LineWidth', 2);
     plot(rightEye(1),rightEye(2), 'r+', 'MarkerSize', 10, 'LineWidth', 2);
+end
+
+counter = 1;
+figure('Name', 'BL');
+for i = 17:25
+    faceMask = uint8(skinRecognitionV2(images{i}));
+    [resultLogical{i}, leftEye, rightEye] = eyeRecognitionElin(images{i});
+    subplot(4, 5, counter);
+    imshow(images{i}.*faceMask);
+    counter = counter + 1;
+    subplot(4, 5, counter);  
+    imshow(images{i}); 
+    hold on
+    plot(leftEye(1),leftEye(2), 'g+', 'MarkerSize', 10, 'LineWidth', 2);
+    plot(rightEye(1),rightEye(2), 'r+', 'MarkerSize', 10, 'LineWidth', 2);
+    counter = counter + 1;
+end
+
+counter = 1;
+figure('Name', 'CL');
+for i = 26:42
+    faceMask = uint8(skinRecognitionV2(images{i}));
+    [resultLogical{i}, leftEye, rightEye] = eyeRecognitionElin(images{i});
+    subplot(6, 6, counter);
+    imshow(images{i}.*faceMask);
+    counter = counter + 1;
+    subplot(6, 6, counter);   
+    imshow(images{i}); 
+    hold on
+    plot(leftEye(1),leftEye(2), 'g+', 'MarkerSize', 10, 'LineWidth', 2);
+    plot(rightEye(1),rightEye(2), 'r+', 'MarkerSize', 10, 'LineWidth', 2);
+    counter = counter + 1;
+end
+
+counter = 1;
+figure('Name', 'EX');
+for i = 42:48
+    faceMask = uint8(skinRecognitionV2(images{i}));
+    [resultLogical{i}, leftEye, rightEye] = eyeRecognitionElin(images{i});
+    subplot(4, 4, counter);
+    imshow(images{i}.*faceMask);
+    counter = counter + 1;
+    subplot(4, 4, counter);    
+    imshow(images{i}); 
+    hold on
+    plot(leftEye(1),leftEye(2), 'g+', 'MarkerSize', 10, 'LineWidth', 2);
+    plot(rightEye(1),rightEye(2), 'r+', 'MarkerSize', 10, 'LineWidth', 2);
+    counter = counter + 1;
+end
+
+counter = 1;
+figure('Name', 'IL');
+for i = 48:54
+    faceMask = uint8(skinRecognitionV2(images{i}));
+    [resultLogical{i}, leftEye, rightEye] = eyeRecognitionElin(images{i});
+    subplot(4, 4, counter);
+    imshow(images{i}.*faceMask);
+    counter = counter + 1;
+    subplot(4, 4, counter);   
+    imshow(images{i}); 
+    hold on
+    plot(leftEye(1),leftEye(2), 'g+', 'MarkerSize', 10, 'LineWidth', 2);
+    plot(rightEye(1),rightEye(2), 'r+', 'MarkerSize', 10, 'LineWidth', 2);
+    counter = counter + 1;
 end
 
 %%
