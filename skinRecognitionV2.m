@@ -52,7 +52,6 @@ result = reshape(arrayResult, sizeImg(1), sizeImg(2));
 
 result = imclose(result, SE2_1);
 result = imclose(result, SE2_2);
-result = imopen(result, SE);
 
 outLogical = result;
 
