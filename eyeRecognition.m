@@ -14,13 +14,8 @@ skinMask = skinRecognitionV2(img);
 J = histeq(I);
 newim = J < 30;
 
-% Attempt in detecting the actual eyes
-% needs to define shape that we want to use morphological open on. 
-% Dilation, erotion. I think this is close to an ellipse.
-
 r = 3;
 SE = strel('disk',r);
-
 illuminationBasedMask = imclose(newim, SE);
 
 
@@ -101,43 +96,25 @@ EyeMap = (EyeMap > 0.42);
 
 %% Kombinera de tre metoderna med &operation i olika ordning till 3 masker. 
 
-% PROVA FIND SOLIDITY PÅ VARJE MASK
-
 ImageIlluCol = EyeMap .* illuminationBasedMask .* skinMask;
 ImageColEdge = illuminationBasedMask .* edgeBasedMask .* skinMask; 
 ImageIlluEdge = EyeMap .* edgeBasedMask .* skinMask;
 
-% figure(); imshow(EyeMap); title('Lisas typ illumination')
-% figure(); imshow(colorBasedMask); title('color based mask')
-% figure(); imshow(edgeBasedMask); title('edge based mask')
-
 % Kombinera de tre maskerna med |operation till en mask
 comboImg = ImageIlluCol | ImageIlluEdge | ImageColEdge;
-% comboImg = EyeMap;            % alla ögon med, lite mycket hår ibland
-% comboImg = illuminationBasedMask;    % alla ögon med, maaaassor annat
+% comboImg = EyeMap;            
+% comboImg = illuminationBasedMask;    
 % comboImg = edgeBasedMask;
-% figure; imshow(comboImg); title('Combination of 3 masks')
 
 
 %% tips från Daniel => ögonen är alltid i övre halvan av bilden
-[y, x] = size(comboImg);
 
-% ta bort nedre halvan av ansiktsmasken 
-% for y1 = (y/2):y
-%     for x1 = 1:x
-%         y1 = floor(y1);
-%         x1 = floor(x1);
-%         comboImg(y1, x1) = 0;
-%    end
-% end
-
-
-% save only blobs with angle around 45 degrees
-props = regionprops(comboImg,'Area', 'BoundingBox', 'Solidity', 'Orientation', 'Extent');
+% save only high density blobs with angle around 45 degrees and specified area 
+props = regionprops(comboImg,'Area', 'Solidity', 'Orientation');
 cc = bwconncomp(comboImg); 
 
-ngt = find(  abs([props.Orientation]) < 50 & [props.Solidity] > 0.5); %  0.8 < [boundbox.Extent] < 4.0
-comboImg = ismember(labelmatrix(cc), ngt);
+eyeBlobs = find( abs([props.Orientation]) < 50 & [props.Solidity] > 0.5 & [props.Area] > 350 & [props.Area] < 3500); 
+comboImg = ismember(labelmatrix(cc), eyeBlobs);
 
 SE = strel('disk', 5);
 SE2 = strel('disk', 3);
@@ -145,35 +122,20 @@ SE2 = strel('disk', 3);
 comboImg = imopen(comboImg, SE);
 comboImg = imopen(comboImg, SE2);
 
-% get all remaining holes 
-% cc = bwconncomp(comboImg); 
-% minsizeofArea = 1;
-% cc.NumObjects
 
-% remove small holes
-% while (cc.NumObjects > 2)
-%     
-% minsizeofArea = minsizeofArea + 1;
-% 
-% cc = bwconncomp(comboImg); 
-% idx = find([boundbox.Area] > minsizeofArea); 
-% comboImg = ismember(labelmatrix(cc), idx);
-% 
-% boundbox = regionprops(comboImg,'Area', 'BoundingBox');
-% end
-
-
-
-% what we get out of regionpropsfunction.boundingbox.
+%% what we get out of regionpropsfunction.boundingbox.
     % [left, top, width, height]
     % left = floor(boundbox(1).BoundingBox(1))
     % top = floor(boundbox(1).BoundingBox(2))
     % width = boundbox(1).BoundingBox(3)
     % height = boundbox(1).BoundingBox(4)
     
-% update bounding box
-boundingbox = regionprops(comboImg,'BoundingBox');
+
+%% update bounding box
+boundbox = regionprops(comboImg,'BoundingBox');
 cc = bwconncomp(comboImg);
+
+% cc.NumObjects
 
 if (cc.NumObjects < 2)
     lefteye = [123, 247];
@@ -182,12 +144,12 @@ if (cc.NumObjects < 2)
 else
       
     % x-values
-    lefteye = boundingbox(1).BoundingBox(1);
-    righteye = boundingbox(1).BoundingBox(1) + boundingbox(1).BoundingBox(3);
+    lefteye = boundbox(1).BoundingBox(1) + 0.5*boundbox(1).BoundingBox(3);
+    righteye = boundbox(2).BoundingBox(1)+ 0.5*boundbox(2).BoundingBox(3);
 
     % y-values
-    yleft = boundingbox(1).BoundingBox(2);
-    yright = boundingbox(1).BoundingBox(2);
+    yleft = boundbox(1).BoundingBox(2) + 0.5*boundbox(1).BoundingBox(4);
+    yright = boundbox(2).BoundingBox(2) + 0.5*boundbox(2).BoundingBox(4);
 
     % drawing lines for testing
     line([lefteye, lefteye + 20], [yleft, yleft], 'Color', 'r');
@@ -204,6 +166,7 @@ end
 if(lefteye > righteye)
    fprintf('Left is right! \n')
 end
+
 
 out = comboImg;
 

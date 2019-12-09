@@ -1,15 +1,4 @@
-<<<<<<< HEA
-%function [lefteye, righteye] = eyeRecognition(img)
-
-%% Elins implementation
-%img = imread('db1_11.jpg');
-
-clc; close all
-imgRGB = imread('db1_02.jpg');
-I = rgb2gray(imgRGB);
-=======
 function [out, lefteye, righteye] = eyeRecognition(img)
->>>>>>> 7beb8faa6fa458d525e9461753e1eedfe9286acd
 
 % image needs to be B/W for edge & illumination based methods
 I = rgb2gray(img);
@@ -23,10 +12,6 @@ skinMask = skinRecognitionV2(img);
 % equlized histogram in grayscale
 J = histeq(I);
 newim = J < 30;
-
-% Attempt in detecting the actual eyes
-% needs to define shape that we want to use morphological open on. 
-% Dilation, erotion. I think this is close to an ellipse.
 
 r = 3;
 SE = strel('disk',r);
@@ -111,8 +96,6 @@ EyeMap = (EyeMap > 0.42);
 
 %% Kombinera de tre metoderna med &operation i olika ordning till 3 masker. 
 
-% PROVA FIND SOLIDITY PÅ VARJE MASK
-
 ImageIlluCol = EyeMap .* illuminationBasedMask .* skinMask;
 ImageColEdge = illuminationBasedMask .* edgeBasedMask .* skinMask; 
 ImageIlluEdge = EyeMap .* edgeBasedMask .* skinMask;
@@ -130,48 +113,19 @@ comboImg = ImageIlluCol | ImageIlluEdge | ImageColEdge;
 
 
 %% tips från Daniel => ögonen är alltid i övre halvan av bilden
-[y, x] = size(comboImg);
-
-% ta bort nedre halvan av ansiktsmasken 
-% for y1 = (y/2):y
-%     for x1 = 1:x
-%         y1 = floor(y1);
-%         x1 = floor(x1);
-%         comboImg(y1, x1) = 0;
-%    end
-% end
-
 
 % save only blobs with angle around 45 degrees
 props = regionprops(comboImg,'Area', 'BoundingBox', 'Solidity', 'Orientation', 'Extent');
 cc = bwconncomp(comboImg); 
 
-ngt = find(  abs([props.Orientation]) < 50 & [props.Solidity] > 0.5); %  0.8 < [boundbox.Extent] < 4.0
-comboImg = ismember(labelmatrix(cc), ngt);
+eyeBlobs = find( abs([props.Orientation]) < 50 & [props.Solidity] > 0.5 & [props.Area] > 350 & [props.Area] < 3500); 
+comboImg = ismember(labelmatrix(cc), eyeBlobs);
 
 SE = strel('disk', 5);
 SE2 = strel('disk', 3);
 
 comboImg = imopen(comboImg, SE);
 comboImg = imopen(comboImg, SE2);
-
-% get all remaining holes 
-% cc = bwconncomp(comboImg); 
-% minsizeofArea = 1;
-% cc.NumObjects
-
-% remove small holes
-% while (cc.NumObjects > 2)
-%     
-% minsizeofArea = minsizeofArea + 1;
-% 
-% cc = bwconncomp(comboImg); 
-% idx = find([boundbox.Area] > minsizeofArea); 
-% comboImg = ismember(labelmatrix(cc), idx);
-% 
-% boundbox = regionprops(comboImg,'Area', 'BoundingBox');
-% end
-
 
 
 % what we get out of regionpropsfunction.boundingbox.
