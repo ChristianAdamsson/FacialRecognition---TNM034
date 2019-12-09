@@ -1,5 +1,6 @@
 function [out, lefteye, righteye] = eyeRecognition(img)
 
+
 % image needs to be B/W for edge & illumination based methods
 I = rgb2gray(img);
 
