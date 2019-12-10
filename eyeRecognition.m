@@ -146,6 +146,20 @@ comboImg = ImageIlluCol | ImageIlluEdge | ImageColEdge;
 % clear ImageIlluCol ImageColEdge ImageIlluEdge EyeMap illuminationBasedMask edgeBasedMask
 %% Save only blobs with correct orientation and solidity 
 
+[y, x] = size(comboImg);
+
+% ta bort nedre tredjedelen av ansiktsmasken 
+for y1 = (2*y/3):y
+    for x1 = 1:x
+        y1 = floor(y1);
+        x1 = floor(x1);
+        comboImg(y1, x1) = 0;
+   end
+end
+clear x y x1 y1 
+
+%%
+
 % save only blobs with orientation angle less than 50 degrees
 % Props contains properties for the connected components of combiImg
 % cc contains all the connected components of combiImg
@@ -224,8 +238,8 @@ end
 % ögat ska vaara. Eller bara returna false.
 if noPairs
     error = "Inga ögonpar hittades"
-    lefteye = [123, 247];       % problematiskt eftersom bilderna har olika upplösning
-    righteye = [267, 250];
+    lefteye = [0, 0];       % problematiskt eftersom bilderna har olika upplösning
+    righteye = [0, 0];
 else
     % compare the pairs and chose the best ones
     sizePairs = size(pairs);
