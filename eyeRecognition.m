@@ -8,6 +8,8 @@ function [out, lefteye, righteye] = eyeRecognition(img) % error ska också vara e
 
 
 % image needs to be B/W for edge & illumination based methods
+
+% img  = imread("bl_04.jpg");
 I = rgb2gray(img);
 
 %% Skin recognition
@@ -45,7 +47,7 @@ r = 3;
 SE = strel('disk',r);
 
 illuminationBasedMask = imclose(newim, SE);
-clear SE r newim J
+% clear SE r newim J
 
 %% Edge based method: 
 
@@ -73,7 +75,7 @@ J2 = imerode(J2, SE);
 
 edgeBasedMask = J2;
 
-clear r1 r2 r3 SE SE2 SE3 J2 BW1 I
+% clear r1 r2 r3 SE SE2 SE3 J2 BW1 I
 
 %% Lisas Color Based implementation
 
@@ -123,7 +125,7 @@ EyeMap = imdilate(EyeMap, se2);
 normalizeChannel(EyeMap);
 EyeMap = (EyeMap > 0.42);  
 
-clear se se2 EyeMapL EyeMapC erodedY dilatedY CbCr Cr2 Cb2 Cr Cb Y imYCbCr img
+% clear se se2 EyeMapL EyeMapC erodedY dilatedY CbCr Cr2 Cb2 Cr Cb Y imYCbCr img
 %% Kombinera de tre metoderna med &operation i olika ordning till 3 masker. 
 
 ImageIlluCol = EyeMap .* illuminationBasedMask .* skinMask;
@@ -141,7 +143,7 @@ comboImg = ImageIlluCol | ImageIlluEdge | ImageColEdge;
 % comboImg = edgeBasedMask;
 % figure; imshow(comboImg); title('Combination of 3 masks')
 
-clear ImageIlluCol ImageColEdge ImageIlluEdge EyeMap illuminationBasedMask edgeBasedMask
+% clear ImageIlluCol ImageColEdge ImageIlluEdge EyeMap illuminationBasedMask edgeBasedMask
 %% Save only blobs with correct orientation and solidity 
 
 % save only blobs with orientation angle less than 50 degrees
@@ -163,14 +165,14 @@ SE2 = strel('disk', 3);
 comboImg = imopen(comboImg, SE);
 comboImg = imopen(comboImg, SE2);
 
-clear SE SE2 eyeBlobs props cc
+% clear SE SE2 eyeBlobs props cc
 
 %% Find blobs with horizontal friend
 labeledImage=bwlabel(comboImg);
 
 s = regionprops(comboImg,'centroid', 'Area');
 centroids = cat(1,s.Centroid);
-area = cat(1, s.Area); 
+areas = cat(1, s.Area); 
 
 noPairs = false;
 if(max(labeledImage(:)) > 1)
@@ -215,7 +217,7 @@ else
     noPairs = true;
 end
 
-clear i j x1 x2 y1 y2 tempAngle tempEdgeDist1 tempEdgeDist2 tempDistBetween tempDistExpected maxAngle minEdgeDist maximumSpaceBetweenBlobs minimumSpaceBetweenBlobs counter s imHeight centroids
+% clear i j x1 x2 y1 y2 tempAngle tempEdgeDist1 tempEdgeDist2 tempDistBetween tempDistExpected maxAngle minEdgeDist maximumSpaceBetweenBlobs minimumSpaceBetweenBlobs counter s imHeight centroids
 
 %%
 % if noPairs, kan implementera att söka efter en blob inom skin mask och försöka anta vart andra
@@ -236,13 +238,26 @@ else
         % for example angles, distance to edge, which pair has one or two eyes inside skin
         % mask etc.
         areaScore = zeros(1, nPairs);
+        angleScore = zeros(1, nPairs);
+        score = zeros(nPairs,3);
         for i = 1:nPairs
             tempPair = pairs{i};
-            areaScore(i) =  abs(area(tempPair(10))-area(tempPair(11))) / abs(area(tempPair(10))+area(tempPair(11))); % low score is better
+            areaScore(i) =  abs(areas(tempPair(10))-areas(tempPair(11))) / abs(areas(tempPair(10))+areas(tempPair(11))); % low score is better
+            angleScore(i) = abs(tempPair(5));                                                                        % low score is better                                                                               
         end
-        clear tempPair nPairs area
+%         clear tempPair area
         
-        winIdx = find(areaScore == min(areaScore));
+        % Compare which pair is best. Low score is better.
+        
+        for i = 1:nPairs
+            score(i,1) = areaScore(i)/max(areaScore);
+            score(i,2) = angleScore(i)/max(angleScore);
+            score(i,3) = score(i,1) + score(i,2);   % total score. Low is better. Can add weights to the most important comparison feature
+        end
+        
+        finalScores = score(:,3);
+        
+        winIdx = find(finalScores == min(finalScores));
         winningPair = pairs{winIdx};
         lefteye = [winningPair(1), winningPair(2)];
         righteye = [winningPair(3), winningPair(4)];
@@ -255,4 +270,8 @@ else
 end
 
 out = labeledImage;
+% imshow(img)
+% hold on
+%     plot(lefteye(1),lefteye(2), 'g+', 'MarkerSize', 10, 'LineWidth', 2);
+%     plot(righteye(1),righteye(2), 'r+', 'MarkerSize', 10, 'LineWidth', 2);
 
