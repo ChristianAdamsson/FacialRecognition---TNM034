@@ -10,7 +10,7 @@ faceCluster = zeros(n,M);
 %% Store all images in faceCluster
 % images from 
 % De som ska läsas in i loopen ska vara normaliserade redan
-for i = 49:57
+for i = 90:112
 
 if  i >= 100
   img = normalize(imread(strcat('C:\Users\chris\Downloads\faces\image_0', int2str(i), '.jpg')));    
