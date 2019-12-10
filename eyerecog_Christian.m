@@ -1,357 +1,254 @@
-
-%%
-
-%%
-%tnm034(im);
-%figure
-%imshow(im);
-I = rgb2gray(im);
-figure
-imshow(I)
-%% Elins implementation
-img = imread('image_0009.jpg');
+function [out, lefteye, righteye] = eyerecog_Christian(img)
 
 
-S = sum(img,3);
-[~,idx] = max(S(:));
-[row,col] = ind2sub(size(S),idx); %Hitta ljusaste punkten
+% image needs to be B/W for edge & illumination based methods
+I = rgb2gray(img);
+
+%% Elins Skin recognition
+skinMask = skinRecognitionV2(img);
 
 
-%imshow(img);
-viscircles([col, row], 3, 'Color', 'b');
+%% Illumination-based method 
 
-hsvImg = rgb2hsv(img);
+% equlized histogram in grayscale
+J = histeq(I);
+newim = J < 30;
 
-%imshow(hsvImg);
+% Attempt in detecting the actual eyes
+% needs to define shape that we want to use morphological open on. 
+% Dilation, erotion. I think this is close to an ellipse.
 
-thresholdLogical = hsvImg(:, :, 1) > 0 & hsvImg(:, :, 1) < 50 & hsvImg(:,:,2) > 0.23 & hsvImg(:,:,2) < 0.68;
+r = 3;
+SE = strel('disk',r);
 
-resultHsvImg = thresholdLogical.*hsvImg(:,:,3);
-
-resultLogical = resultHsvImg > 0.6;
-
-%imshow(resultLogical);
-
-skinImg = img.*uint8(resultLogical);
-
-%imshow(skinImg);
-resultLogical = skinRecognition(img);
-
-sMin = 0.23;
-sMax = 0.68;
-hMin = 0;
-hMax = 50;
-
-%% Run this section for Color-based method 
-[counts,binLocations] = imhist(I);
-
-%%equlized histogram in grayscale
-J = histeq(I, 256);
-
-% J < 20, J > 20? Both seem to work, according to the report we might wanna use J > 20?
-newim = J < 20;
-%dilation(newim);
-% and Attempt in detecting the actual eyes
-%%needs to define shape that we want to use morphological open on. Dilation
-%, erotion. I think this is close to an ellipse. 
-r = 1;
-n = 4;
-SE = strel('disk',r,n);
-
-binaryImage = imopen(newim, SE);
-
-%figure;
-%imshow(binaryImage);
+illuminationBasedMask = imclose(newim, SE);
 
 
-%% https://se.mathworks.com/matlabcentral/fileexchange/25157-image-segmentation-tutorial
-% tried this but didn't really work -> needs further improvement/testing. 
-%% Run this section for Edge based method: 
-%should probably change the way SE works. 
+%% Edge based method: 
 
 BW1 = edge(I,'sobel');
-BW2 = edge(I,'canny');
-%figure;
-%imshowpair(BW1,BW2,'montage')
-%title('Sobel Filter                                   Canny Filter');
+% BW2 = edge(I,'canny');
 
 % probably needs some work with the SE ad erotion etc. 
-r = 2;
-n = 8;
-SE = strel('diamond',r);
-SE2 = strel('disk', 4, n);
-SE3 = strel('diamond', 4);
-SE4 = strel('disk', 8, n);
-%nhood = 10;
-%SE = strel(nhood)
-J2 = imdilate(BW1,SE);
+r1 = 1;
+r2 = 2;
+r3 = 4;
+
+%this is the things that workds for most pictures. 
+SE = strel('disk', r1);
+SE2 = strel('disk', r2);
+SE3 = strel('disk', r3);
+
+% 2 dilation to enhance connected regions and fill holes 
+% 3 erosion to remove unwanted connected regions
+
+J2 = imdilate(BW1,SE3);
 J2 = imdilate(J2, SE3);
-j2 = imerode(J2, SE4);
-J2 = imerode(J2, SE2);
-J2 = imerode(J2, SE4);
-%figure;
-%imshow(J2);
+J2 = imerode(J2, SE3);    
+J2 = imerode(J2, SE);
+J2 = imerode(J2, SE);
 
-%% Lisas implementation
-%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% Läser in en RGB bild
-% Konverterar till double
-% Konverterar till YCbCr
-%
-% Skapar EyeMap för chrominance och luminance enligt metod föreslagen i
-% FACE DETECTION IN COLOR IMAGES
-% Rein-Lien Hsu et al.
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%
+edgeBasedMask = J2;
 
-%clc
-%close all
-%clear all
+%% Lisas Color Based implementation
 
-imRGB = imread('image_0009.jpg');
-imRGB=im2double(imRGB);
-imYCbCr = rgb2ycbcr(imRGB);
+img = im2double(img) .* skinMask;
+imYCbCr = rgb2ycbcr(img);
 
-%% Isolate Y Cb and Cr
+% Isolate Y Cb and Cr
 Y = imYCbCr(:,:,1);
 Cb = imYCbCr(:,:,2);
-Cr= imYCbCr(:,:,3);
+Cr = imYCbCr(:,:,3);
 
-%figure
-%subplot(2,3,1)
-%imshow(Y);
-%subplot(2,3,2)
-%imshow(Cb);
-%subplot(2,3,3)
-%imshow(Cr);
+% normalize channels
+Y = normalizeChannel(Y);
+Cb = normalizeChannel(Cb);
+Cr = normalizeChannel(Cr);
 
-%% normalize channels
-Y = imadjust(Y,stretchlim(Y),[0 1]);
-Cb = imadjust(Cb,stretchlim(Cb),[0 1]);
-Cr = imadjust(Cr,stretchlim(Cr),[0 1]);
+% compute stuff to combine to chroma map
+    % cb2
+    Cb2 = Cb.^2;
+    Cb2 = normalizeChannel(Cb2);
 
-%subplot(2,3,4)
-%imshow(Y);
-%subplot(2,3,5)
-%imshow(Cb);
-%subplot(2,3,6)
-%imshow(Cr);
+    % cr2
+    Cr2 = (Cr-1).^2;
+    Cr2 = normalizeChannel(Cr2);
 
-%% cb2
+    % CbCr
+    CbCr = Cb./Cr;
+    CbCr = imadjust(CbCr,stretchlim(CbCr),[0 1]);
 
-Cb2 = Cb.^2;
-Cb2 = imadjust(Cb2,stretchlim(Cb2),[0 1]);
-
-%figure
-%subplot(4,2,1)
-%imshow(Cb);
-%subplot(4,2,2)
-%imshow(Cb2);
-
-
-%% cr2
-Cr2 = (Cr-1).^2;
-Cr2 = imadjust(Cr2,stretchlim(Cr2),[0 1]);
-
-%subplot(4,2,3)
-%imshow(Cr);
-%subplot(4,2,4)
-%imshow(Cr2);
-
-%% CbCr
-
-CbCr = Cb./Cr;
-%subplot(4,2,6)
-%imshow(CbCr)
-
-%% Eye Map C
-
+% Eye Map Chroma
 EyeMapC = (Cb2 + Cr2 + CbCr)./3;
-%subplot(4,2,8)
-%imshow(EyeMapC)
+EyeMapC = normalizeChannel(EyeMapC);
 
-%% Eye Map L
-
-% structuring element
-% Different se for dilate and erode?
-% Also, should be hemisphere, not disk!
-% se = offsetstrel('ball',1,1);
-se = strel('disk',10); 
-
+% Eye map luminance             
+se = strel('disk',5);
 dilatedY = imdilate(Y,se);
-%figure
-%subplot(3,3,1)
-%imshow(dilatedY)
-
 erodedY = imerode(Y,se);
-%subplot(3,3,2)
-%imshow(erodedY)
 
-EyeMapL = dilatedY./(erodedY +1 );
-%subplot(3,3,3)
-%imshow(EyeMapL)
+EyeMapL = dilatedY./(erodedY + 1);
+normalizeChannel(EyeMapL);
 
-subplot(3,3,6)
-%imshow(EyeMapC)
-
-%% Combine final eye map
-
+% Combine final logical eye map
 EyeMap = EyeMapC.*EyeMapL; 
-%subplot(3,3,9)
-%imshow(EyeMap)
+se2 = strel('disk',7);
+EyeMap = imdilate(EyeMap, se2);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% TODO:
-% Fix dilation and erosion of EyeMapL
-% Dilate and threshold the final EyeMap
+normalizeChannel(EyeMap);
+EyeMap = (EyeMap > 0.42);  
+
+
+%% Kombinera de tre metoderna med &operation i olika ordning till 3 masker. 
+
+% PROVA FIND SOLIDITY PÅ VARJE MASK
+
+ImageIlluCol = EyeMap .* illuminationBasedMask .* skinMask;
+ImageColEdge = illuminationBasedMask .* edgeBasedMask .* skinMask; 
+ImageIlluEdge = EyeMap .* edgeBasedMask .* skinMask;
+
+% figure(); imshow(EyeMap); title('Lisas typ illumination')
+% figure(); imshow(colorBasedMask); title('color based mask')
+% figure(); imshow(edgeBasedMask); title('edge based mask')
+
+% Kombinera de tre maskerna med |operation till en mask
+comboImg = ImageIlluCol | ImageIlluEdge | ImageColEdge;
+% comboImg = EyeMap;            % alla ögon med, lite mycket hår ibland
+% comboImg = illuminationBasedMask;    % alla ögon med, maaaassor annat
+% comboImg = edgeBasedMask;
+% figure; imshow(comboImg); title('Combination of 3 masks')
+
+
+%% tips från Daniel => ögonen är alltid i övre halvan av bilden
+[y, x] = size(comboImg);
+
+% ta bort nedre halvan av ansiktsmasken 
+% for y1 = (y/2):y
+%     for x1 = 1:x
+%         y1 = floor(y1);
+%         x1 = floor(x1);
+%         comboImg(y1, x1) = 0;
+%    end
+% end
+
+
+% save only blobs with angle around 45 degrees
+props = regionprops(comboImg,'Area', 'BoundingBox', 'Solidity', 'Orientation', 'Extent');
+cc = bwconncomp(comboImg); 
+
+ngt = find(  abs([props.Orientation]) < 50 & [props.Solidity] > 0.5); %  0.8 < [boundbox.Extent] < 4.0
+comboImg = ismember(labelmatrix(cc), ngt);
+
+SE = strel('disk', 5);
+SE2 = strel('disk', 3);
+
+comboImg = imopen(comboImg, SE);
+comboImg = imopen(comboImg, SE2);
+
+% get all remaining holes 
+% cc = bwconncomp(comboImg); 
+% minsizeofArea = 1;
+% cc.NumObjects
+
+% remove small holes
+% while (cc.NumObjects > 2)
+%     
+% minsizeofArea = minsizeofArea + 1;
 % 
-% TODO: Implement the detection
-% From FACE DETECTION IN COLOR IMAGES, Rein-Lien Hsu et al.
-% "Eye candidates are selected by using 
-% (i) pyramid decomposition of the dilated eye map for coarse localizations 
-% and (ii) binary morphological closing and iterative thresholding 
-% on this dilated map for fine localizations.
+% cc = bwconncomp(comboImg); 
+% idx = find([boundbox.Area] > minsizeofArea); 
+% comboImg = ismember(labelmatrix(cc), idx);
 % 
-% TODO: Implement verification
-% "The eyes and mouth candidates are verified by checking 
-% (i) luma variations of eye and mouth blobs; 
-% (ii) geometry and orientation constraints of eyes-mouth triangles; 
-% and (iii) the presence of a face boundary around eyes-mouth triangles." 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% boundbox = regionprops(comboImg,'Area', 'BoundingBox');
+% end
 
 
-%% försök nmr 2 skapa hybrid
-% ResultLogical uträkning tar nu lång tid
-% multiplicerar ihop logiska matriserna. 
 
-ImageIlluCol = EyeMap .* binaryImage .* resultLogical;
-ImageColEdge = binaryImage .* J2 .* resultLogical; 
-ImageIlluEdge =  EyeMap.* J2 .* resultLogical;
-
-%figure
-%imshow(ImageColEdge)
-%figure
-%imshow(ImageIlluCol)
-%figure
-%imshow(ImageIlluEdge)
-
-comboimg = ImageIlluCol .* ImageIlluEdge .* ImageIlluEdge;
-%figure
-%imshow(comboimg);
-
-%imhist(comboimg);
-
-%%
-comboimg = ImageIlluCol .* ImageIlluEdge .* ImageIlluEdge;
-comboimg = (comboimg > 0.2);
-
-SE5 = strel('disk', 4, 6);
-SE6 = strel('disk', 1, 4);
-comboimg = imopen(comboimg, SE6);
-comboimg = imclose(comboimg, SE5);
-
-imshow(comboimg);
-
-%SE = strel('diamond',r);
-%SE2 = strel('disk', 4, n);
-%SE3 = strel('diamond', 4);
-%SE4 = strel('disk', 8, n);
-%nhood = 10;
-%SE = strel(nhood)
-%J2 = imdilate(BW1,SE);
-%J2 = imdilate(J2, SE3);
-
-bwlabeled = max(bwlabel(comboimg));
-boundbox = regionprops(comboimg,'Area', 'BoundingBox');
-%boundbox(1).BoundingBox(1);
-cc = bwconncomp(comboimg); 
-minsizeofArea = 20;
-while (cc.NumObjects > 2)
+% what we get out of regionpropsfunction.boundingbox.
+    % [left, top, width, height]
+    % left = floor(boundbox(1).BoundingBox(1))
+    % top = floor(boundbox(1).BoundingBox(2))
+    % width = boundbox(1).BoundingBox(3)
+    % height = boundbox(1).BoundingBox(4)
     
-minsizeofArea = minsizeofArea + 20;
+% update bounding box
+boundingbox = regionprops(comboImg,'BoundingBox');
+cc = bwconncomp(comboImg);
 
-cc = bwconncomp(comboimg); 
-%stats = regionprops(cc, 'Area','Eccentricity'); 
-idx = find([boundbox.Area] > minsizeofArea); 
-BW2 = ismember(labelmatrix(cc), idx);
+if (cc.NumObjects < 2)
+    lefteye = [123, 247];
+    righteye = [267, 250];
+    fprintf('Less than 2 eyes found! \n')
+else
+      
+    % x-values
+    lefteye = boundingbox(1).BoundingBox(1);
+    righteye = boundingbox(1).BoundingBox(1) + boundingbox(1).BoundingBox(3);
 
-figure;
-imshow(BW2)
-boundbox = regionprops(comboimg,'Area', 'BoundingBox');
+    % y-values
+    yleft = boundingbox(1).BoundingBox(2);
+    yright = boundingbox(1).BoundingBox(2);
+
+    % drawing lines for testing
+    line([lefteye, lefteye + 20], [yleft, yleft], 'Color', 'r');
+    line([righteye, righteye - 20], [yright, yright], 'Color', 'g');
+    lefteye = [lefteye + 10, yleft];
+    righteye = [righteye - 10, yright];
+
 end
 
-lefteye = boundbox(1).BoundingBox(1)
-righteye = boundbox(2).BoundingBox(1)
+% error något
+if( abs(lefteye - righteye) < 20 )
+    fprintf('Eyes too close! \n')
+end 
+if(lefteye > righteye)
+   fprintf('Left is right! \n')
+end
 
-leftline = (lefteye: lefteye + boundbox(1).BoundingBox(3));
-rightline = (righteye: righteye + boundbox(2).BoundingBox(3));
-%plot(leftline);
-%%
-%figure
-%[left, top, width, height
-%left = floor(boundbox(1).BoundingBox(1))
-%top = floor(boundbox(1).BoundingBox(2))
-%width = boundbox(1).BoundingBox(3)
-%height = boundbox(1).BoundingBox(4)
+out = comboImg;
 
-yleft = boundbox(1).BoundingBox(2) + (boundbox(1).BoundingBox(4)/2);
-yright = boundbox(2).BoundingBox(2) + (boundbox(2).BoundingBox(4)/2);
-%hold on
-figure
-imshow(im)
-%line([50 100], [30 30])
-%hold on
-line([lefteye, lefteye + boundbox(1).BoundingBox(3)], [yleft, yleft], 'Color', 'r');
-line([righteye, righteye + boundbox(2).BoundingBox(3)], [yright, yright], 'Color', 'r');
-%hold on
+labeledImage=bwlabel(comboImg);
+
+s = regionprops(comboImg,'centroid');
+centroids = cat(1,s.Centroid);
 
 
-%labelledImage = bwconncomp(comboimg);
-%stats = regionprops(labelledImage, 'area', 'BoundingBox');
+maximumHeightDifference = 10;
+maximumSpaceBetweenBlobs = 50;
+
+for i = 1:(max(max(labeledImage))-1)
+    for j = i+1:max(max(labeledImage))
+        distance = sqrt( (centroids(j,1)-centroids(i,1))^2 + (centroids(j,2)-centroids(i,2))^2 )
+        if(distance < maximumSpaceBetweenBlobs)
+            tempMask = ismember(labeledImage, i);
+            labeledImage(tempMask) = 0;
+            tempMask = ismember(labeledImage, j);
+            labeledImage(tempMask) = 0;
+        end
+    end
+end
+
+labeledImage=bwlabel(labeledImage);
+s = regionprops(logical(labeledImage),'centroid');
+centroids2 = cat(1,s.Centroid);
+clear pairs;
+counter = 1;
+for i = 1:(max(max(labeledImage))-1)
+    for j = i+1:max(max(labeledImage))
+        if(abs(centroids2(i,2)-centroids2(j,2)) < maximumHeightDifference)
+            pairs(counter,:) = [i,j];
+            counter = counter + 1;
+        end
+    end
+end
 
 
-%ImageIlluEdge = insertObjectAnnotation(ImageIlluEdge,'Rectangle',boundbox(1).BoundingBox,'testbox');
-%testbox = insertObjectAnnotation(comboimg, 'Rectangle', stats(1).BoundingBox, 'testbox');
-%figure;
-%imshow(testbox);
-%figure;
-%imshow(ImageIlluEdge);
+imshow(labeledImage/max(max(labeledImage)))
+hold on
+plot(centroids(:,1),centroids(:,2),'b*')
+
+BW5 = bwmorph(labeledImage,'skel',Inf);
+labeledLines=bwlabel(BW5);
 
 
-%% Ny test för eyemap
-im = imread('db1_01.jpg');
-    
-img = rgb2ycbcr(im);
-%img = referenceWhite(img);
-    Y = im2double(img(:,:,1));
-    Cb = im2double(img(:,:,2));
-    Cr = im2double(img(:,:,3));
- 
-
-    Cbsqr = normalize(Cb.^2, 255);
-    CbNegsqr = normalize(255-(Cr.^2), 255);
-    % CbNegsqr = 255*CbNegsqr/max(max(CbNegsqr));
-    CbCr = normalize(Cb./Cr, 255);
-    % CbCr = 255*CbCr/max(max(CbCr));
-    
-    %According to formula 1 in "Face Detection in Color Images"
-    eyeMapC =  (1/3) * (Cbsqr+CbNegsqr +CbCr);
-    
-    %Requires Image Processing Toolbox.
-    %Creates a Morphological structuring element, namely a disk which
-    %we can use for erision/dilation. 4 is the radius.diskSize = 10;
-    diskSize = 8;
-    kernel = strel('disk', diskSize);
-    NOMINATOR = imdilate(Y, kernel);
-    DENOMINATOR = imerode(Y, kernel);
-    eyeMapL = NOMINATOR./(DENOMINATOR+1);
-    
-    %Return value
-    eyeMap = eyeMapL.*eyeMapC;
-    %imshow(eyeMap);
-
-
-
-
-
+end

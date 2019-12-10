@@ -20,7 +20,7 @@ rightEye = cell(16,1);
 % skin & eye detection
 figure
 for i = 1:16
-    [finalMask{i}, leftEye{i}, rightEye{i}] = eyeRecognition(images{i});
+    [finalMask{i}, leftEye{i}, rightEye{i}] = eyerecog_Christian(images{i});
     subplot(4, 4, i);
     imshow(finalMask{i});
 end
