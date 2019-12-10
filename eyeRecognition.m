@@ -1,10 +1,14 @@
 function [out, lefteye, righteye] = eyeRecognition(img) % error ska också vara en utvariabel
 
+
 % Saker som kan förbättras/implementeras:
 % Skapa förväntad ögonposition inom skin mask (svårt eftersom opålitlig skin mask)
 % Svårt att använda min och max distance eftersom det beror på upplösningen
 % av bilderna som kommer in
 
+
+% image needs to be B/W for edge & illumination based methods
+I = rgb2gray(img);
 
 %% Skin recognition
 skinMask = skinRecognitionV2(img);

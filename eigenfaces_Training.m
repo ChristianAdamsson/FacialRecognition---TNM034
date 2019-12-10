@@ -2,16 +2,21 @@
 % Modify the code to fit your needs
 
 
-M = 3;  
+M = 16;  
 n = 300*400;
-k = 3;
+k = 9;
 
 faceCluster = zeros(n,M);
 %% Store all images in faceCluster
 % images from 
 % De som ska läsas in i loopen ska vara normaliserade redan
-for i = 2:M
-    img = normalize(imread(strcat('C:\Users\Hilma\OneDrive - Linköpings universitet\FLUM\TNM034 - ABOB\DB1\db1_0', int2str(i), '.jpg')));
+for i = 1:M
+if i >= 10
+  img = normalize(imread(strcat('C:\Users\chris\OneDrive\Desktop\TNM034 - aBoB\db1_', int2str(i), '.jpg')));
+  %img = normalize(imread(strcat('C:\Users\Hilma\OneDrive - Linköpings universitet\FLUM\TNM034 - ABOB\DB1\db1_0', int2str(i), '.jpg')));
+else  
+  img = normalize(imread(strcat('C:\Users\chris\OneDrive\Desktop\TNM034 - aBoB\db1_0', int2str(i), '.jpg')));
+end
     faceCluster(:,i) = img(:);
 end
 clear img
@@ -53,7 +58,7 @@ for i = 1:M
         w(j,i) = bestEigenvectors(:,j)'*A(:,i);
     end
 end
-clear A i j 
+%clear A i j 
 
 
 
