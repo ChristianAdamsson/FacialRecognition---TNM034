@@ -9,20 +9,20 @@ for i = 1:16
 end
 
 % color correct
-for i = 1:16
-    images{i} = referenceWhite(images{i});
-end
+% for i = 1:16
+%     images{i} = referenceWhite(images{i});
+% end
 
 finalMask = cell(16,1);
 leftEye = cell(16,1);
 rightEye = cell(16,1);
 
 % skin & eye detection
-figure
+% figure
 for i = 1:16
     [finalMask{i}, leftEye{i}, rightEye{i}] = eyeRecognition(images{i});
-    subplot(4, 4, i);
-    imshow(finalMask{i});
+%     subplot(4, 4, i);
+%     imshow(finalMask{i});
 end
 
     

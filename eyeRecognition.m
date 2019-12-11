@@ -11,7 +11,7 @@ function [out, lefteye, righteye] = eyeRecognition(img) % error ska också vara e
 I = rgb2gray(img);
 
 %% Skin recognition
-skinMask = skinRecognitionV2(img);
+skinMask = skinRecognitionV2(im2double(img));
 
 maxAngle = 45;
 minEdgeDist = 10; % Distance to edge in percent
@@ -130,9 +130,9 @@ ImageIlluCol = EyeMap .* illuminationBasedMask .* skinMask;
 ImageColEdge = illuminationBasedMask .* edgeBasedMask .* skinMask; 
 ImageIlluEdge = EyeMap .* edgeBasedMask .* skinMask;
 
-% figure(); imshow(EyeMap); title('Lisas typ illumination')
-% figure(); imshow(colorBasedMask); title('color based mask')
-% figure(); imshow(edgeBasedMask); title('edge based mask')
+figure(); imshow(EyeMap); title('Ögonigenkänning - Illumination')
+figure(); imshow(colorBasedMask); title('Ögonigenkänning - Färgskillnader')
+figure(); imshow(edgeBasedMask); title('Ögonigenkänning - Kantdetektering')
 
 % Kombinera de tre maskerna med |operation till en mask
 comboImg = ImageIlluCol | ImageIlluEdge | ImageColEdge;

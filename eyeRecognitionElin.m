@@ -119,10 +119,6 @@ ImageIlluCol = EyeMap .* illuminationBasedMask .* skinMask;
 ImageColEdge = illuminationBasedMask .* edgeBasedMask .* skinMask; 
 ImageIlluEdge = EyeMap .* edgeBasedMask .* skinMask;
 
-% figure(); imshow(EyeMap); title('Lisas typ illumination')
-% figure(); imshow(colorBasedMask); title('color based mask')
-% figure(); imshow(edgeBasedMask); title('edge based mask')
-
 % Kombinera de tre maskerna med |operation till en mask
 comboImg = ImageIlluCol | ImageIlluEdge | ImageColEdge;
 % comboImg = EyeMap;            % alla ögon med, lite mycket hår ibland
