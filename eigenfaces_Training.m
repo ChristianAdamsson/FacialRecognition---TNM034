@@ -2,27 +2,22 @@
 % Modify the code to fit your needs
 
 
-M = 16;  
+M = 226;  
 n = 300*400;
-k = 9;
+k = 16;
 
 faceCluster = zeros(n,M);
 %% Store all images in faceCluster
-% images from 
-% De som ska läsas in i loopen ska vara normaliserade redan
 for i = 1:M
-if i >= 10
-  img = normalize(imread(strcat('C:\Users\chris\OneDrive\Desktop\TNM034 - aBoB\db1_', int2str(i), '.jpg')));
-  %img = normalize(imread(strcat('C:\Users\Hilma\OneDrive - Linköpings universitet\FLUM\TNM034 - ABOB\DB1\db1_0', int2str(i), '.jpg')));
-else  
-  img = normalize(imread(strcat('C:\Users\chris\OneDrive\Desktop\TNM034 - aBoB\db1_0', int2str(i), '.jpg')));
-end
+    img = normalize(imread(strcat('database/img (', int2str(i), ').jpg')));
     faceCluster(:,i) = img(:);
 end
 clear img
 
 %% Compute average face
 averageFace = 1/M * sum(faceCluster,2);
+% face = normalizeChannel(reshape(averageFace,[400,300]));
+% imshow(face)
 
 %% Compute phi = A, which holds each image minus the average face
 A = faceCluster - averageFace;
@@ -58,15 +53,7 @@ for i = 1:M
         w(j,i) = bestEigenvectors(:,j)'*A(:,i);
     end
 end
-%clear A i j 
-
-
-
-
-
-
-
-
+clear A i j 
 
 
 % %% Reshape U into matrice to get eigenfaces
@@ -81,9 +68,19 @@ end
 %     subplot(4,4,i)
 %     imshow(eigenface(:,:,i))    
 % end
+
+% %% Show best eigenfaces
 % 
-
-
+% for i = 1:k
+%     eigenface(:,:,i) = normalizeChannel(reshape(bestEigenvectors(:,i),[400,300])); %normalizeChannel
+% end
+% 
+% for i = 1:k
+%     subplot(4,4,i)
+%     imshow(eigenface(:,:,i))    
+% end
+% 
+% 
 
 
 
