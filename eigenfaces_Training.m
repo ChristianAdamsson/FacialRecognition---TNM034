@@ -4,7 +4,7 @@
 
 M = 226;  
 n = 300*400;
-k = 16;
+k = 9;
 
 faceCluster = zeros(n,M);
 %% Store all images in faceCluster
