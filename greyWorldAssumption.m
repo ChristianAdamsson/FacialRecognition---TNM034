@@ -31,9 +31,6 @@ end
 
 % transform output to uint8
 out = uint8(out); 
-% figure, imshow(out)
-% title('Grey World Corrected')
-
 
 end
 

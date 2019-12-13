@@ -1,13 +1,12 @@
 % This code calculates the feature vectors for a set of training images
 % Modify the code to fit your needs
 
-
 M = 226;  
 n = 300*400;
-k = 9;
+k = 32;
 
-faceCluster = zeros(n,M);
 %% Store all images in faceCluster
+faceCluster = zeros(n,M);
 for i = 1:M
     img = normalize(imread(strcat('database/img (', int2str(i), ').jpg')));
     faceCluster(:,i) = img(:);
@@ -16,6 +15,7 @@ clear img
 
 %% Compute average face
 averageFace = 1/M * sum(faceCluster,2);
+
 % face = normalizeChannel(reshape(averageFace,[400,300]));
 % imshow(face)
 
@@ -56,19 +56,6 @@ end
 clear A i j 
 
 
-% %% Reshape U into matrice to get eigenfaces
-% 
-% for i = 1:M
-%     eigenface(:,:,i) = (reshape(U(:,i),[400,300])); %normalizeChannel
-% end
-% 
-% % Show all eigenfaces
-% figure
-% for i = 1:M
-%     subplot(4,4,i)
-%     imshow(eigenface(:,:,i))    
-% end
-
 % %% Show best eigenfaces
 % 
 % for i = 1:k
@@ -81,6 +68,3 @@ clear A i j
 % end
 % 
 % 
-
-
-

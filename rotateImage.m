@@ -26,15 +26,15 @@ eye2_row = eye2(2);
 deltaHeight = eye1_row - eye2_row;
 deltaWidth = eye2_col - eye1_col;
 
-angle = asind(deltaHeight/deltaWidth); % Vafan detta måste ju vara tangens?????? wtf
+angle = asind(deltaHeight/deltaWidth); 
+
 
 %% Rotate the image
 [~, imWidth, ~] = size(im);
 rotatedImage = imrotate(im,real(-angle), 'bilinear');
-%imshow(rotatedImage);
+
 
 %% Calculate new row/col coordinates of the eyes
-
 segA = eye1_col / cosd(abs(angle));
 helpsegB = eye1_col * tand(abs(angle));
 helpsegC = eye1_row - helpsegB;

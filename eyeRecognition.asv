@@ -7,8 +7,11 @@ skinMask = skinRecognitionV2(im2double(img));
 maxAngle = 45;
 minEdgeDist = 10; % Distance to edge in percent
 
+% maximumHeightDifference = 10;
 minimumSpaceBetweenBlobs = 70;
 maximumSpaceBetweenBlobs = 300;
+% smallestArea = 300;
+% biggesttArea = 2000;
 
 % image needs to be B/W for edge & illumination based methods
 I = rgb2gray(img);
@@ -139,14 +142,13 @@ for y1 = (2*y/3):y
         comboImg(y1, x1) = 0;
    end
 end
-
 clear x y x1 y1 
 
+%%
 
-%% save only blobs with orientation angle less than 50 degrees
+% save only blobs with orientation angle less than 50 degrees
 % Props contains properties for the connected components of combiImg
 % cc contains all the connected components of combiImg
-
 props = regionprops(comboImg, 'Solidity', 'Orientation');
 cc = bwconncomp(comboImg); 
 
@@ -157,7 +159,6 @@ cc = bwconncomp(comboImg);
 eyeBlobs = find(abs([props.Orientation]) < 50 & [props.Solidity] > 0.5); 
 comboImg = ismember(labelmatrix(cc), eyeBlobs);
 
-% structure elements for morphologic ops.
 SE = strel('disk', 5);
 SE2 = strel('disk', 3);
 
@@ -165,7 +166,6 @@ comboImg = imopen(comboImg, SE);
 comboImg = imopen(comboImg, SE2);
 
 % clear SE SE2 eyeBlobs props cc
-
 
 %% Find blobs with horizontal friend
 labeledImage=bwlabel(comboImg);
@@ -178,7 +178,6 @@ noPairs = false;
 if(max(labeledImage(:)) > 1)
     clear pairs;
     counter = 1;
-    
     %Find all pairs of blobs that are horizontal
     for i = 1:max(labeledImage(:))-1
         for j = i+1:max(labeledImage(:))
@@ -220,9 +219,11 @@ end
 
 % clear i j x1 x2 y1 y2 tempAngle tempEdgeDist1 tempEdgeDist2 tempDistBetween tempDistExpected maxAngle minEdgeDist maximumSpaceBetweenBlobs minimumSpaceBetweenBlobs counter s imHeight centroids
 
-
-%% if noPairs, kan implementera att söka efter en blob inom skin mask och försöka anta vart andra ögat ska vaara. Eller bara returna false.
+%%
+% if noPairs, kan implementera att söka efter en blob inom skin mask och försöka anta vart andra
+% ögat ska vaara. Eller bara returna false.
 if noPairs
+    error = "Inga ögonpar hittades"
     lefteye = [100, 100 ];       % problematiskt eftersom bilderna har olika upplösning
     righteye = [200, 100];
 else
@@ -269,7 +270,6 @@ else
 end
 
 out = labeledImage;
-
 % imshow(img)
 % hold on
 %     plot(lefteye(1),lefteye(2), 'g+', 'MarkerSize', 10, 'LineWidth', 2);

@@ -1,8 +1,6 @@
-
 % https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=560536
 
 function [outLogical] = skinRecognitionV2(inImg)
-SE = strel('sphere', 3);
 SE2_1 = strel('line', 300, 90);
 SE2_2 = strel('line', 300, 0);
 
@@ -17,7 +15,7 @@ arrayYcbcr = reshape(ycbcrImg, [],3);
 arrayResult = zeros(3, maxSize);
 
 hMin = 0; hMax = 50; sMin = 0.23; sMax = 0.68;
-rMin = 95; gMin = 40; bMin = 20; % r > g & r > b & |r-g| > 15 
+rMin = 95; gMin = 40; bMin = 20; 
 crMin = 135; cbMin = 85; yMin = 80;
 
 for j = 1:3    
@@ -57,26 +55,13 @@ for j = 1:3
         else
             arrayResult(j,i) = 0;
         end
-
     end
-
 end
 
 
 sumResult = [sum(arrayResult(1,:), 'all'), sum(arrayResult(2,:), 'all'), sum(arrayResult(3,:), 'all')];
 
-[tempMax, index] = max(sumResult);
-
-
-% result1 = reshape(arrayResult(1,:), sizeImg(1), sizeImg(2));
-% result2 = reshape(arrayResult(2,:), sizeImg(1), sizeImg(2));
-% result3 = reshape(arrayResult(3,:), sizeImg(1), sizeImg(2));
-% subplot(1,3,1);
-% imshow(result1);
-% subplot(1,3,2);
-% imshow(result2);
-% subplot(1,3,3);
-% imshow(result3);
+[~, index] = max(sumResult);
 
 result = reshape(arrayResult(index,:), sizeImg(1), sizeImg(2));
 

@@ -30,7 +30,6 @@ p16 = 209:226;
 
 % normalize the image
 normalized = normalize(im);
-% implement/use error check
 img = normalized(:) - averageFace;
 
 % calculate weights for the image
@@ -44,16 +43,15 @@ for i = 1:M
 end
 
 
-% calculate best match
-% "min error" 
-% min(e)
-
- % Threshold
+% Threshold
 % thresh = 1800;  % strict
 thresh = 3300;  % loose
 
+
+% calculate best match with min error, min(e)
 if (min(e)>thresh)
     id = 0;
+    
 else
     bestMatch = find(e == min(e));
 
@@ -107,5 +105,3 @@ else
 %     imshow(found)
 end
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%
