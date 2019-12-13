@@ -6,7 +6,7 @@ function [out] = normalize(in)
 %in = referenceWhite(in);
 
 % skin & eye detection
-[leftEye, rightEye] = eyeRecognition(in);
+[out1, leftEye, rightEye] = eyeRecognition(in);
 
 % rotate, scale & translate
 out = scaling(in, leftEye, rightEye);

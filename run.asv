@@ -10,8 +10,7 @@
 %dream17 blir 7
 %dream18 (kungen) blir 2. 
 % Read image and create its weight vector w
-%img = im2double(rgb2gray(imread('dream/dream1.jpg')));
-img = normalize(imread('ex_01.jpg'));
+img = im2double(rgb2gray(imread('dream/dream18.jpg')));
 img = img(:) - averageFace;
 
 %if we want to check all the images, should probably be put outside
@@ -27,10 +26,6 @@ for j = 1:k
 end
 %clear img j
 
-%%
-
-
-
 %% Closest feature vector
 e = zeros(M,1);
 
@@ -44,8 +39,8 @@ bestMatch = find(e==min(e));
 %% Threshold - is this close enough?
 %min error differs vastly, sometimes around 3000 sometimes around 900. 
 %Everyone isn't classified correctly. 
-threshold = 3000;
-if min(e) > threshold
+threshold = 900;
+if min(e) < threshold
     bestMatch = 0;
     %intruder!! / Kungen
 end

@@ -30,10 +30,17 @@ scaledImage = imresize(rotatedImage, scaleFactor);
 leftEye = leftEye*scaleFactor;
 translationDistance = [leftEyePos(1) - leftEye(1), leftEyePos(2) - leftEye(2)];
 
+translatedImage2 = zeros(400,300, 3);
 translatedImage = imtranslate(scaledImage, translationDistance);
-out = rgb2gray(translatedImage(1:400, 1:300, :)); 
+[row, col] = size(translatedImage);
 
-figure, imshow(out); title('Scaled & translated Image')
+if row < 400 || col < 300
+translatedImage = translatedImage2;
+end
+
+out = rgb2gray(translatedImage(1:400, 1:300, :));
+
+%figure, imshow(out); title('Scaled & translated Image')
 
 end
 

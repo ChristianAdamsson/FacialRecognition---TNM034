@@ -6,11 +6,14 @@
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-close all
-clear all
-clc
+% close all
+% clear all
+% clc
+% 
+% imRGB = imread('db1_10.jpg');
 
-imRGB = imread('db1_10.jpg');
+function [out] = mouthmapLisa(imRGB)
+
 imRGB=im2double(imRGB);
 imYCbCr = rgb2ycbcr(imRGB);
 
@@ -41,10 +44,8 @@ MouthMap = MouthMap.*MouthMap;
 MouthMap = MouthMap.*Cr2;
 MouthMap = normalizeChannel(MouthMap);
 
-min = min(min(MouthMap))
-max = max(max(MouthMap))
-
-
+% min = min(min(MouthMap))
+% max = max(max(MouthMap))
 
 
 %% Dilate 
@@ -52,5 +53,8 @@ max = max(max(MouthMap))
 se = strel('disk',10);
 MouthMap = imdilate(MouthMap,se);
 
-figure
-imshow(MouthMap)
+out = MouthMap > 0.5;
+
+end
+% figure
+% imshow(out)

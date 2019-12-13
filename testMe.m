@@ -21,8 +21,8 @@ rightEye = cell(16,1);
 % figure
 for i = 1:16
     [finalMask{i}, leftEye{i}, rightEye{i}] = eyeRecognition(images{i});
-%     subplot(4, 4, i);
-%     imshow(finalMask{i});
+    subplot(4, 4, i);
+    imshow(finalMask{i});
 end
 
     
