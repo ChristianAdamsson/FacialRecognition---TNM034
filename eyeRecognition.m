@@ -238,8 +238,8 @@ end
 % ögat ska vaara. Eller bara returna false.
 if noPairs
     error = "Inga ögonpar hittades"
-    lefteye = [0, 0];       % problematiskt eftersom bilderna har olika upplösning
-    righteye = [0, 0];
+    lefteye = [100, 100 ];       % problematiskt eftersom bilderna har olika upplösning
+    righteye = [200, 100];
 else
     % compare the pairs and chose the best ones
     sizePairs = size(pairs);
